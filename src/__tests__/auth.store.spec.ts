@@ -3,7 +3,10 @@ import { setActivePinia, createPinia } from 'pinia'
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    auth: { onAuthStateChange: vi.fn() },
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange: vi.fn(),
+    },
     from: () => ({
       select: () => ({
         eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }),

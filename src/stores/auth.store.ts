@@ -23,14 +23,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchFamilyData(userId: string) {
     const { data: memberData } = await query(
-      supabase.from('family_members').select('*').eq('user_id', userId).single(),
+      supabase.from('family_members').select('*').eq('user_id', userId).maybeSingle(),
     )
 
     if (memberData) {
       member.value = memberData
 
       const { data: familyData } = await query(
-        supabase.from('families').select('*').eq('id', memberData.family_id!).single(),
+        supabase.from('families').select('*').eq('id', memberData.family_id!).maybeSingle(),
       )
 
       if (familyData) {
@@ -39,8 +39,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function initAuth() {
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+  async function handleSession(session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) {
+    try {
       user.value = session?.user ?? null
 
       if (session?.user) {
@@ -48,10 +48,23 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         $reset()
       }
-
+    } catch (err) {
+      console.error('[Auth] Error during auth state change:', err)
+    } finally {
       loading.value = false
+    }
+  }
+
+  async function initAuth() {
+    // Get current session immediately
+    const { data } = await supabase.auth.getSession()
+    await handleSession(data.session)
+
+    // Listen for future changes (sign in, sign out, token refresh)
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      await handleSession(session)
     })
   }
 
-  return { user, member, family, loading, isLoggedIn, isInFamily, isAdmin, displayName, $reset, initAuth }
+  return { user, member, family, loading, isLoggedIn, isInFamily, isAdmin, displayName, $reset, initAuth, fetchFamilyData }
 })
