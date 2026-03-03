@@ -1,4 +1,12 @@
-// Placeholder — types will be added as needed per ticket
-// Database type is auto-generated in TICKET-02 via: supabase gen types typescript
+import type { User } from '@supabase/supabase-js'
+import type { Tables } from './database'
 
-export {}
+export type Family = Tables<'families'>
+export type FamilyMember = Tables<'family_members'>
+
+export interface AuthState {
+  user: User | null
+  member: FamilyMember | null
+  family: Family | null
+  loading: boolean
+}
