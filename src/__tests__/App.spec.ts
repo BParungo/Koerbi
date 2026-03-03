@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 
 // Mock supabase before any imports that use it
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
       onAuthStateChange: vi.fn(),
     },
   },
@@ -14,7 +16,7 @@ import { createPinia } from 'pinia'
 import App from '../App.vue'
 
 describe('App', () => {
-  it('shows loading spinner while auth is initializing', () => {
+  it('shows RouterView after auth initializes with no session', async () => {
     const pinia = createPinia()
     const wrapper = mount(App, {
       global: {
@@ -22,7 +24,9 @@ describe('App', () => {
         stubs: { RouterView: true },
       },
     })
-    // Auth store starts with loading=true, so spinner should be visible
-    expect(wrapper.find('.animate-spin').exists()).toBe(true)
+    await flushPromises()
+    // After getSession resolves with null, loading=false → RouterView shown
+    expect(wrapper.find('.animate-spin').exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'RouterView' }).exists()).toBe(true)
   })
 })
