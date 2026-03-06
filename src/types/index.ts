@@ -16,6 +16,17 @@ export interface CreateRecipeForm {
   ingredients: { name: string; amount: string; unit: string }[]
 }
 
+export type ShoppingItem = Tables<'shopping_items'>
+export type ShoppingList = Tables<'shopping_lists'> & { items: ShoppingItem[] }
+
+export interface CreateShoppingItemForm {
+  name: string
+  amount?: string
+  unit?: string
+  category?: string
+  assigned_to?: string | null
+}
+
 export interface AuthState {
   user: User | null
   member: FamilyMember | null
