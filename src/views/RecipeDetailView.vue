@@ -32,6 +32,7 @@ const showDeleteDialog = ref(false)
 const showListDialog = ref(false)
 const deleting = ref(false)
 const shoppingLists = ref<{ id: string; name: string | null }[]>([])
+const addedToList = ref(false)
 
 onMounted(async () => {
   const id = route.params.id as string
@@ -92,7 +93,31 @@ async function addToList(listId: string) {
     })),
   )
 
-  showListDialog.value = false
+  addedToList.value = true
+  setTimeout(() => {
+    showListDialog.value = false
+    addedToList.value = false
+  }, 1200)
+}
+
+async function createListAndAdd() {
+  if (!auth.family || !auth.user || !recipe.value) return
+
+  const { data } = await query(
+    supabase
+      .from('shopping_lists')
+      .insert({
+        family_id: auth.family.id,
+        created_by: auth.user.id,
+        name: 'Einkaufsliste',
+      })
+      .select()
+      .single(),
+  )
+
+  if (data) {
+    await addToList(data.id)
+  }
 }
 </script>
 
@@ -144,7 +169,11 @@ async function addToList(listId: string) {
             Zutaten von &#8222;{{ recipe?.name }}&#8220; hinzuf&#252;gen zu:
           </DialogDescription>
         </DialogHeader>
-        <div class="space-y-2">
+        <div v-if="addedToList" class="py-4 text-center">
+          <p class="text-2xl">&#10003;</p>
+          <p class="mt-1 text-sm text-muted-foreground">Zutaten hinzugef&#252;gt!</p>
+        </div>
+        <div v-else class="space-y-2">
           <Button
             v-for="list in shoppingLists"
             :key="list.id"
@@ -154,9 +183,13 @@ async function addToList(listId: string) {
           >
             {{ list.name ?? 'Einkaufsliste' }}
           </Button>
-          <p v-if="!shoppingLists.length" class="text-sm text-muted-foreground">
-            Keine Einkaufslisten vorhanden. Erstelle zuerst eine unter Einkaufen.
-          </p>
+          <Button
+            variant="outline"
+            class="w-full justify-start text-muted-foreground"
+            @click="createListAndAdd"
+          >
+            + Neue Liste erstellen
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
