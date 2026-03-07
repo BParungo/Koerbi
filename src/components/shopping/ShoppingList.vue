@@ -41,7 +41,10 @@ const hasCategories = computed(() => {
     <!-- Pending Items grouped by category -->
     <template v-if="hasCategories">
       <template v-for="[category, items] in groupedPendingItems" :key="category">
-        <p v-if="category" class="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p
+          v-if="category"
+          class="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+        >
           {{ category }}
         </p>
         <ShoppingItem
@@ -72,7 +75,10 @@ const hasCategories = computed(() => {
     </template>
 
     <!-- Empty state -->
-    <p v-if="!pendingItems.length && !doneItems.length" class="py-8 text-center text-muted-foreground">
+    <p
+      v-if="!pendingItems.length && !doneItems.length"
+      class="py-8 text-center text-muted-foreground"
+    >
       Keine Artikel auf der Liste
     </p>
 
@@ -80,15 +86,8 @@ const hasCategories = computed(() => {
     <template v-if="doneItems.length">
       <Separator class="my-3" />
       <div class="flex items-center justify-between">
-        <p class="text-sm font-medium text-muted-foreground">
-          Erledigt ({{ doneItems.length }})
-        </p>
-        <Button
-          variant="ghost"
-          size="sm"
-          class="text-muted-foreground"
-          @click="emit('clear-done')"
-        >
+        <p class="text-sm font-medium text-muted-foreground">Erledigt ({{ doneItems.length }})</p>
+        <Button variant="ghost" size="sm" class="text-muted-foreground" @click="emit('clear-done')">
           <Trash2 class="mr-1 h-3 w-3" />
           Alle entfernen
         </Button>

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import type { User } from '@supabase/supabase-js'
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -37,7 +38,7 @@ describe('auth.store', () => {
 
   it('isLoggedIn is true when user is set', () => {
     const store = useAuthStore()
-    store.user = { id: '123', email: 'test@test.de' } as any
+    store.user = { id: '123', email: 'test@test.de' } as unknown as User
     expect(store.isLoggedIn).toBe(true)
   })
 
@@ -48,7 +49,7 @@ describe('auth.store', () => {
 
   it('isInFamily is true when family is set', () => {
     const store = useAuthStore()
-    store.family = { id: '1', name: 'Test Family', invite_code: 'abc', created_at: null }
+    store.family = { id: '1', name: 'Test Family', invite_code: 'abc', created_at: null, created_by: null }
     expect(store.isInFamily).toBe(true)
   })
 
@@ -67,7 +68,7 @@ describe('auth.store', () => {
     const store = useAuthStore()
     expect(store.displayName).toBe('Unknown')
 
-    store.user = { id: '1', email: 'test@test.de' } as any
+    store.user = { id: '1', email: 'test@test.de' } as unknown as User
     expect(store.displayName).toBe('test@test.de')
 
     store.member = { id: '1', name: 'Mom', role: 'member', family_id: '1', user_id: '1', avatar: null, joined_at: null }
@@ -76,9 +77,9 @@ describe('auth.store', () => {
 
   it('$reset clears user, member, and family', () => {
     const store = useAuthStore()
-    store.user = { id: '1', email: 'test@test.de' } as any
+    store.user = { id: '1', email: 'test@test.de' } as unknown as User
     store.member = { id: '1', name: 'Mom', role: 'member', family_id: '1', user_id: '1', avatar: null, joined_at: null }
-    store.family = { id: '1', name: 'Test', invite_code: 'abc', created_at: null }
+    store.family = { id: '1', name: 'Test', invite_code: 'abc', created_at: null, created_by: null }
 
     store.$reset()
 

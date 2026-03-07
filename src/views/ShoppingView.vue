@@ -17,7 +17,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog'
 import { Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import type { FamilyMember, CreateShoppingItemForm } from '@/types'
@@ -37,7 +37,7 @@ const {
   clearDone,
   assignItem,
   subscribeRealtime,
-  unsubscribeRealtime,
+  unsubscribeRealtime
 } = useShopping()
 
 const members = ref<FamilyMember[]>([])
@@ -74,13 +74,13 @@ onMounted(async () => {
 
   if (auth.family) {
     const { data } = await query(
-      supabase.from('family_members').select('*').eq('family_id', auth.family.id),
+      supabase.from('family_members').select('*').eq('family_id', auth.family.id)
     )
     if (data) members.value = data as FamilyMember[]
 
     // Load recipe names for items with from_recipe_id
     const { data: recipes } = await query(
-      supabase.from('recipes').select('id, name').eq('family_id', auth.family.id),
+      supabase.from('recipes').select('id, name').eq('family_id', auth.family.id)
     )
     if (recipes) {
       for (const r of recipes) {
@@ -103,7 +103,7 @@ async function handleCreateList() {
   await createList(newListName.value.trim())
   newListName.value = ''
   showNewListDialog.value = false
-  subscribeRealtime()
+  subscribeRealtime() // re-subscribe to new active list
 }
 
 async function handleSwitchList(listId: string) {
@@ -129,7 +129,7 @@ async function handleDeleteList() {
   if (!store.activeListId) return
   await deleteList(store.activeListId)
   showDeleteListDialog.value = false
-  subscribeRealtime()
+  subscribeRealtime() // re-subscribe to new active list
 }
 </script>
 
@@ -223,19 +223,12 @@ async function handleDeleteList() {
           <DialogTitle>Neue Einkaufsliste</DialogTitle>
         </DialogHeader>
         <form @submit.prevent="handleCreateList">
-          <Input
-            v-model="newListName"
-            placeholder="z.B. Wocheneinkauf"
-            required
-            class="mb-4"
-          />
+          <Input v-model="newListName" placeholder="z.B. Wocheneinkauf" required class="mb-4" />
           <DialogFooter>
             <Button variant="outline" type="button" @click="showNewListDialog = false">
               Abbrechen
             </Button>
-            <Button type="submit" :disabled="!newListName.trim()">
-              Erstellen
-            </Button>
+            <Button type="submit" :disabled="!newListName.trim()"> Erstellen </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -248,18 +241,12 @@ async function handleDeleteList() {
           <DialogTitle>Liste umbenennen</DialogTitle>
         </DialogHeader>
         <form @submit.prevent="handleRename">
-          <Input
-            v-model="renameValue"
-            required
-            class="mb-4"
-          />
+          <Input v-model="renameValue" required class="mb-4" />
           <DialogFooter>
             <Button variant="outline" type="button" @click="showRenameDialog = false">
               Abbrechen
             </Button>
-            <Button type="submit" :disabled="!renameValue.trim()">
-              Speichern
-            </Button>
+            <Button type="submit" :disabled="!renameValue.trim()"> Speichern </Button>
           </DialogFooter>
         </form>
       </DialogContent>

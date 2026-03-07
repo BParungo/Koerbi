@@ -12,7 +12,7 @@ function makeMember(overrides: Partial<FamilyMember> = {}): FamilyMember {
     role: 'member',
     avatar: null,
     joined_at: null,
-    ...overrides,
+    ...overrides
   }
 }
 
@@ -32,7 +32,7 @@ function makeItem(overrides: Partial<ShoppingItemType> = {}): ShoppingItemType {
     from_recipe_id: null,
     sort_order: 0,
     created_at: '2026-01-01T00:00:00Z',
-    ...overrides,
+    ...overrides
   }
 }
 
@@ -41,8 +41,8 @@ describe('ShoppingItem', () => {
     const wrapper = mount(ShoppingItem, {
       props: {
         item: makeItem(),
-        members: [makeMember()],
-      },
+        members: [makeMember()]
+      }
     })
 
     await wrapper.find('select').setValue('user-1')
@@ -55,8 +55,8 @@ describe('ShoppingItem', () => {
     const wrapper = mount(ShoppingItem, {
       props: {
         item: makeItem(),
-        members: [makeMember()],
-      },
+        members: [makeMember()]
+      }
     })
 
     const row = wrapper.find('div.flex.items-center.gap-3.rounded-lg')
