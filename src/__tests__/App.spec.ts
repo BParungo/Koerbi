@@ -6,9 +6,13 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
-      onAuthStateChange: vi.fn(),
-    },
-  },
+      onAuthStateChange: vi.fn()
+    }
+  }
+}))
+
+vi.mock('vue-router', () => ({
+  useRoute: () => ({ name: 'login', meta: {}, path: '/login' })
 }))
 
 import { mount } from '@vue/test-utils'
@@ -21,8 +25,8 @@ describe('App', () => {
     const wrapper = mount(App, {
       global: {
         plugins: [pinia],
-        stubs: { RouterView: true },
-      },
+        stubs: { RouterView: true }
+      }
     })
     await flushPromises()
     // After getSession resolves with null, loading=false → RouterView shown
