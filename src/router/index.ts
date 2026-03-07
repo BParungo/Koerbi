@@ -8,61 +8,67 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('@/views/LoginView.vue'),
-      meta: { requiresGuest: true },
+      meta: { requiresGuest: true }
     },
     {
       path: '/onboarding',
       name: 'onboarding',
       component: () => import('@/views/OnboardingView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/invite/:code',
+      name: 'invite',
+      redirect: (to) => ({ name: 'onboarding', query: { invite: String(to.params.code ?? '') } }),
+      meta: { requiresAuth: true }
     },
     {
       path: '/',
       redirect: '/recipes',
-      meta: { requiresAuth: true, requiresFamily: true },
+      meta: { requiresAuth: true, requiresFamily: true }
     },
     {
       path: '/recipes',
       name: 'recipes',
       component: () => import('@/views/RecipesView.vue'),
-      meta: { requiresAuth: true, requiresFamily: true },
+      meta: { requiresAuth: true, requiresFamily: true }
     },
     {
       path: '/recipes/new',
       name: 'recipe-new',
       component: () => import('@/views/RecipeFormView.vue'),
-      meta: { requiresAuth: true, requiresFamily: true },
+      meta: { requiresAuth: true, requiresFamily: true }
     },
     {
       path: '/recipes/:id',
       name: 'recipe-detail',
       component: () => import('@/views/RecipeDetailView.vue'),
-      meta: { requiresAuth: true, requiresFamily: true },
+      meta: { requiresAuth: true, requiresFamily: true }
     },
     {
       path: '/recipes/:id/edit',
       name: 'recipe-edit',
       component: () => import('@/views/RecipeFormView.vue'),
-      meta: { requiresAuth: true, requiresFamily: true },
+      meta: { requiresAuth: true, requiresFamily: true }
     },
     {
       path: '/shopping',
       name: 'shopping',
       component: () => import('@/views/ShoppingView.vue'),
-      meta: { requiresAuth: true, requiresFamily: true },
+      meta: { requiresAuth: true, requiresFamily: true }
     },
     {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),
-      meta: { requiresAuth: true, requiresFamily: true },
+      meta: { requiresAuth: true, requiresFamily: true }
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      redirect: '/',
-    },
-  ],
+      redirect: '/'
+    }
+  ]
 })
 
 router.beforeEach(async (to) => {
@@ -85,7 +91,9 @@ router.beforeEach(async (to) => {
     })
   }
 
-  if (to.meta.requiresAuth && !auth.isLoggedIn) return { name: 'login' }
+  if (to.meta.requiresAuth && !auth.isLoggedIn) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
   if (to.meta.requiresGuest && auth.isLoggedIn) return { name: 'recipes' }
   if (to.meta.requiresFamily && !auth.isInFamily) return { name: 'onboarding' }
 })

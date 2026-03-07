@@ -11,7 +11,8 @@
 CREATE OR REPLACE FUNCTION generate_invite_code()
 RETURNS TEXT AS $$
   SELECT upper(substr(md5(random()::text), 1, 8))
-$$ LANGUAGE sql;
+$$ LANGUAGE sql
+SET search_path = pg_catalog;
 
 
 -- ============================================
@@ -23,6 +24,7 @@ CREATE TABLE families (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name         TEXT NOT NULL,
   invite_code  TEXT UNIQUE NOT NULL DEFAULT generate_invite_code(),
+  created_by   UUID REFERENCES auth.users(id) DEFAULT auth.uid(),
   created_at   TIMESTAMPTZ DEFAULT now()
 );
 
@@ -114,8 +116,9 @@ CREATE INDEX idx_shopping_items_done ON shopping_items(done);
 -- Get all family IDs the current user belongs to
 CREATE OR REPLACE FUNCTION my_family_ids()
 RETURNS SETOF UUID AS $$
-  SELECT family_id FROM family_members WHERE user_id = auth.uid()
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+  SELECT family_id FROM public.family_members WHERE user_id = auth.uid()
+$$ LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public, pg_temp;
 
 
 -- ============================================
@@ -137,18 +140,19 @@ ALTER TABLE shopping_items  ENABLE ROW LEVEL SECURITY;
 -- Helper: get family IDs including via ingredients (bypasses nested RLS)
 CREATE OR REPLACE FUNCTION family_id_for_recipe(recipe_uuid UUID)
 RETURNS UUID AS $$
-  SELECT family_id FROM recipes WHERE id = recipe_uuid
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+  SELECT family_id FROM public.recipes WHERE id = recipe_uuid
+$$ LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public, pg_temp;
 
 -- families: members can view their own family
 CREATE POLICY "Members can view own family"
   ON families FOR SELECT
   USING (id IN (SELECT my_family_ids()));
 
--- families: anyone authenticated can create (for onboarding)
-CREATE POLICY "Authenticated users can create family"
+-- families: authenticated users can only create rows owned by themselves
+CREATE POLICY "Authenticated users can create families"
   ON families FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (created_by = auth.uid());
 
 -- families: admin can update family name
 CREATE POLICY "Admin can update family"

@@ -12,6 +12,25 @@ export function buildInviteLink(inviteCode: string): string {
  */
 export function parseInviteCode(input: string): string {
   const trimmed = input.trim()
-  const match = trimmed.match(/\/invite\/(.+)$/)
-  return match?.[1] ?? trimmed
+  if (!trimmed) return ''
+
+  const directPathMatch = trimmed.match(/\/invite\/([^/?#]+)/i)
+  if (directPathMatch?.[1]) return directPathMatch[1].toUpperCase()
+
+  try {
+    const url = new URL(trimmed, window.location.origin)
+    const queryCode = url.searchParams.get('invite')
+    if (queryCode)
+      return queryCode
+        .trim()
+        .replace(/[/?#].*$/, '')
+        .toUpperCase()
+  } catch {
+    // Keep raw fallback for non-URL user input.
+  }
+
+  return trimmed
+    .replace(/[/?#].*$/, '')
+    .replace(/\/+$/, '')
+    .toUpperCase()
 }

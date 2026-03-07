@@ -33,14 +33,12 @@ export function useFamily() {
 
     const family = families[0]!
 
-    const { error: memberError } = await supabase
-      .from('family_members')
-      .insert({
-        family_id: family.id,
-        user_id: store.user.id,
-        name: displayName,
-        role: 'admin',
-      })
+    const { error: memberError } = await supabase.from('family_members').insert({
+      family_id: family.id,
+      user_id: store.user.id,
+      name: displayName,
+      role: 'admin'
+    })
 
     if (memberError) {
       console.error('[Supabase]', memberError.message, memberError)
@@ -63,7 +61,7 @@ export function useFamily() {
     const code = parseInviteCode(inviteInput)
 
     const { data: family, error: familyError } = await query(
-      supabase.from('families').select('*').eq('invite_code', code).single(),
+      supabase.from('families').select('*').eq('invite_code', code).single()
     )
 
     if (familyError || !family) {
@@ -73,16 +71,12 @@ export function useFamily() {
     }
 
     const { error: memberError } = await query(
-      supabase
-        .from('family_members')
-        .insert({
-          family_id: family.id,
-          user_id: store.user.id,
-          name: displayName,
-          role: 'member',
-        })
-        .select()
-        .single(),
+      supabase.from('family_members').insert({
+        family_id: family.id,
+        user_id: store.user.id,
+        name: displayName,
+        role: 'member'
+      })
     )
 
     if (memberError) {
