@@ -9,6 +9,7 @@ import ProgressBar from '@/components/shopping/ProgressBar.vue'
 import AddItemForm from '@/components/shopping/AddItemForm.vue'
 import ShoppingList from '@/components/shopping/ShoppingList.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import EmptyState from '@/components/shared/EmptyState.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Plus, Pencil, Trash2 } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, ShoppingCart } from 'lucide-vue-next'
 import type { FamilyMember, CreateShoppingItemForm } from '@/types'
 
 const store = useShoppingStore()
@@ -206,14 +207,21 @@ async function handleDeleteList() {
       </template>
 
       <!-- No lists -->
-      <div v-else class="py-12 text-center">
-        <p class="text-4xl">&#x1F6D2;</p>
-        <p class="mt-2 text-muted-foreground">Noch keine Einkaufsliste vorhanden</p>
-        <Button variant="outline" class="mt-4" @click="showNewListDialog = true">
-          <Plus class="mr-1 h-4 w-4" />
-          Erste Liste erstellen
-        </Button>
-      </div>
+      <EmptyState
+        v-else
+        title="Noch keine Einkaufsliste vorhanden"
+        description="Erstelle deine erste Liste und teile sie mit der Familie."
+      >
+        <template #icon>
+          <ShoppingCart class="h-6 w-6" />
+        </template>
+        <template #action>
+          <Button variant="outline" @click="showNewListDialog = true">
+            <Plus class="mr-1 h-4 w-4" />
+            Erste Liste erstellen
+          </Button>
+        </template>
+      </EmptyState>
     </template>
 
     <!-- New List Dialog -->

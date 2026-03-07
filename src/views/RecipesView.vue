@@ -4,10 +4,11 @@ import { useRecipesStore } from '@/stores/recipes.store'
 import { useRecipes } from '@/composables/useRecipes'
 import RecipeCard from '@/components/recipe/RecipeCard.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import EmptyState from '@/components/shared/EmptyState.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Search } from 'lucide-vue-next'
+import { Plus, Search, ChefHat } from 'lucide-vue-next'
 
 const store = useRecipesStore()
 const { fetchRecipes } = useRecipes()
@@ -35,11 +36,7 @@ onMounted(() => {
     <!-- Search -->
     <div class="relative">
       <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
-        v-model="store.searchQuery"
-        placeholder="Rezept suchen..."
-        class="pl-9"
-      />
+      <Input v-model="store.searchQuery" placeholder="Rezept suchen..." class="pl-9" />
     </div>
 
     <!-- Category Filter -->
@@ -60,27 +57,35 @@ onMounted(() => {
 
     <!-- Recipe List -->
     <div v-else-if="store.filteredRecipes.length" class="space-y-3">
-      <RecipeCard
-        v-for="recipe in store.filteredRecipes"
-        :key="recipe.id"
-        :recipe="recipe"
-      />
+      <RecipeCard v-for="recipe in store.filteredRecipes" :key="recipe.id" :recipe="recipe" />
     </div>
 
     <!-- Empty State -->
-    <div v-else class="py-12 text-center">
-      <p class="text-4xl">🍳</p>
-      <p class="mt-2 text-muted-foreground">
-        {{ store.searchQuery || store.activeCategory !== 'Alle'
+    <EmptyState
+      v-else
+      :title="
+        store.searchQuery || store.activeCategory !== 'Alle'
           ? 'Keine Rezepte gefunden'
-          : 'Noch keine Rezepte vorhanden' }}
-      </p>
-      <RouterLink v-if="!store.searchQuery && store.activeCategory === 'Alle'" :to="{ name: 'recipe-new' }">
-        <Button variant="outline" class="mt-4">
-          <Plus class="mr-1 h-4 w-4" />
-          Erstes Rezept erstellen
-        </Button>
-      </RouterLink>
-    </div>
+          : 'Noch keine Rezepte vorhanden'
+      "
+      :description="
+        store.searchQuery || store.activeCategory !== 'Alle'
+          ? 'Passe Suche oder Kategorie an.'
+          : 'Lege dein erstes Rezept an, um loszulegen.'
+      "
+    >
+      <template #icon>
+        <ChefHat class="h-6 w-6" />
+      </template>
+
+      <template v-if="!store.searchQuery && store.activeCategory === 'Alle'" #action>
+        <RouterLink :to="{ name: 'recipe-new' }">
+          <Button variant="outline">
+            <Plus class="mr-1 h-4 w-4" />
+            Erstes Rezept erstellen
+          </Button>
+        </RouterLink>
+      </template>
+    </EmptyState>
   </div>
 </template>

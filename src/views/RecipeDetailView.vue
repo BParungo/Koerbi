@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import RecipeDetail from '@/components/recipe/RecipeDetail.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import EmptyState from '@/components/shared/EmptyState.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -15,9 +16,9 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog'
-import { ArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft, CircleAlert } from 'lucide-vue-next'
 import type { Recipe } from '@/types'
 
 const route = useRoute()
@@ -72,7 +73,7 @@ async function handleAddToList() {
       .from('shopping_lists')
       .select('id, name')
       .eq('family_id', auth.family.id)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
   )
   shoppingLists.value = data ?? []
   showListDialog.value = true
@@ -89,8 +90,8 @@ async function addToList(listId: string) {
       amount: ing.amount,
       unit: ing.unit,
       from_recipe_id: recipe.value!.id,
-      sort_order: i,
-    })),
+      sort_order: i
+    }))
   )
 
   addedToList.value = true
@@ -109,10 +110,10 @@ async function createListAndAdd() {
       .insert({
         family_id: auth.family.id,
         created_by: auth.user.id,
-        name: 'Einkaufsliste',
+        name: 'Einkaufsliste'
       })
       .select()
-      .single(),
+      .single()
   )
 
   if (data) {
@@ -130,9 +131,20 @@ async function createListAndAdd() {
 
     <LoadingSpinner v-if="loading" />
 
-    <div v-else-if="!recipe" class="py-12 text-center">
-      <p class="text-muted-foreground">Rezept nicht gefunden</p>
-    </div>
+    <EmptyState
+      v-else-if="!recipe"
+      title="Rezept nicht gefunden"
+      description="Das Rezept existiert nicht mehr oder du hast keinen Zugriff."
+    >
+      <template #icon>
+        <CircleAlert class="h-6 w-6" />
+      </template>
+      <template #action>
+        <Button variant="outline" @click="router.push({ name: 'recipes' })"
+          >Zurück zur Übersicht</Button
+        >
+      </template>
+    </EmptyState>
 
     <RecipeDetail
       v-else
