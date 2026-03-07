@@ -6,7 +6,7 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
+  AccordionTrigger
 } from '@/components/ui/accordion'
 import { SlidersHorizontal, Plus } from 'lucide-vue-next'
 import type { FamilyMember, CreateShoppingItemForm } from '@/types'
@@ -53,7 +53,7 @@ function handleSubmit() {
     amount: amount.value || undefined,
     unit: unit.value || undefined,
     category: category.value || undefined,
-    assigned_to: assignedTo.value,
+    assigned_to: assignedTo.value
   })
   name.value = ''
   amount.value = ''
@@ -74,12 +74,7 @@ function handleSubmit() {
         required
         class="h-10 flex-1"
       />
-      <Button
-        type="submit"
-        size="icon"
-        class="h-10 w-10"
-        :disabled="loading || !name.trim()"
-      >
+      <Button type="submit" size="icon" class="h-10 w-10" :disabled="loading || !name.trim()">
         <Plus class="h-4 w-4" />
       </Button>
     </div>
@@ -98,17 +93,8 @@ function handleSubmit() {
         <AccordionContent class="pb-0">
           <div class="rounded-md border border-input bg-background p-2">
             <div class="grid grid-cols-2 gap-2">
-              <Input
-                v-model="amount"
-                placeholder="Menge"
-                inputmode="decimal"
-                class="h-10"
-              />
-              <Input
-                v-model="unit"
-                placeholder="Einheit"
-                class="h-10"
-              />
+              <Input v-model="amount" placeholder="Menge" inputmode="decimal" class="h-10" />
+              <Input v-model="unit" placeholder="Einheit" class="h-10" />
               <Input
                 v-model="category"
                 placeholder="Kategorie"
@@ -133,17 +119,8 @@ function handleSubmit() {
     </Accordion>
 
     <div class="hidden grid-cols-2 gap-2 sm:grid sm:grid-cols-6">
-      <Input
-        v-model="amount"
-        placeholder="Menge"
-        inputmode="decimal"
-        class="h-10"
-      />
-      <Input
-        v-model="unit"
-        placeholder="Einheit"
-        class="h-10"
-      />
+      <Input v-model="amount" placeholder="Menge" inputmode="decimal" class="h-10" />
+      <Input v-model="unit" placeholder="Einheit" class="h-10" />
       <Input
         v-model="category"
         placeholder="Kategorie"
@@ -164,10 +141,18 @@ function handleSubmit() {
     </div>
 
     <datalist id="shopping-category-suggestions">
-      <option v-for="categoryOption in normalizedCategorySuggestions" :key="categoryOption" :value="categoryOption" />
+      <option
+        v-for="categoryOption in normalizedCategorySuggestions"
+        :key="categoryOption"
+        :value="categoryOption"
+      />
     </datalist>
     <datalist id="shopping-item-name-suggestions">
-      <option v-for="itemNameOption in normalizedItemNameSuggestions" :key="itemNameOption" :value="itemNameOption" />
+      <option
+        v-for="itemNameOption in normalizedItemNameSuggestions"
+        :key="itemNameOption"
+        :value="itemNameOption"
+      />
     </datalist>
   </form>
 </template>

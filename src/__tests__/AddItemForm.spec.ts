@@ -12,7 +12,7 @@ function makeMember(overrides: Partial<FamilyMember> = {}): FamilyMember {
     role: 'member',
     avatar: null,
     joined_at: null,
-    ...overrides,
+    ...overrides
   }
 }
 
@@ -20,8 +20,8 @@ describe('AddItemForm', () => {
   it('emits category in submit payload', async () => {
     const wrapper = mount(AddItemForm, {
       props: {
-        members: [makeMember()],
-      },
+        members: [makeMember()]
+      }
     })
 
     await wrapper.find('input[list="shopping-item-name-suggestions"]').setValue('Tomaten')
@@ -38,7 +38,7 @@ describe('AddItemForm', () => {
       amount: '2',
       unit: 'kg',
       category: 'Gemuese',
-      assigned_to: 'user-1',
+      assigned_to: 'user-1'
     })
   })
 
@@ -47,8 +47,8 @@ describe('AddItemForm', () => {
       props: {
         members: [makeMember()],
         categorySuggestions: ['Obst', 'Gemuese', 'Obst'],
-        itemNameSuggestions: ['Milch', 'Brot', 'Milch'],
-      },
+        itemNameSuggestions: ['Milch', 'Brot', 'Milch']
+      }
     })
 
     const categoryInput = wrapper.find('input[list="shopping-category-suggestions"]')

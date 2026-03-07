@@ -18,7 +18,7 @@ const emit = defineEmits<{
 }>()
 
 const assignedMember = computed(() =>
-  props.members.find((m) => m.user_id === props.item.assigned_to),
+  props.members.find((m) => m.user_id === props.item.assigned_to)
 )
 
 const swipeOffset = ref(0)
@@ -68,9 +68,9 @@ function onAssignChange(event: Event) {
     <!-- Checkbox -->
     <button
       class="flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors"
-      :class="item.done
-        ? 'border-primary bg-primary text-primary-foreground'
-        : 'border-muted-foreground'"
+      :class="
+        item.done ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground'
+      "
       @click="emit('toggle', item.id)"
     >
       <svg
@@ -90,7 +90,10 @@ function onAssignChange(event: Event) {
       <p class="text-sm" :class="{ 'line-through': item.done }">
         {{ item.name }}
       </p>
-      <p v-if="item.amount || item.unit || recipeName" class="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+      <p
+        v-if="item.amount || item.unit || recipeName"
+        class="flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
+      >
         <span v-if="item.amount || item.unit">{{ item.amount }} {{ item.unit }}</span>
         <span v-if="recipeName" class="rounded bg-muted px-1">{{ recipeName }}</span>
       </p>
