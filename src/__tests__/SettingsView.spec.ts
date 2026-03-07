@@ -166,7 +166,7 @@ describe('SettingsView', () => {
     expect(signOutSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('saves edited display name and avatar URL', async () => {
+  it('saves edited display name and avatar preset', async () => {
     const store = useAuthStore()
     store.user = { id: 'u-1', email: 'alex@example.com' } as never
     store.member = {
@@ -192,7 +192,12 @@ describe('SettingsView', () => {
     await flushPromises()
 
     await wrapper.find('#profile-display-name').setValue('Alex Neu')
-    await wrapper.find('#profile-avatar-url').setValue('https://example.com/avatar.png')
+    const avatarButton = wrapper
+      .findAll('button')
+      .find((button) => button.attributes('aria-label') === 'Avatar 🐻')
+
+    expect(avatarButton).toBeTruthy()
+    await avatarButton!.trigger('click')
     const saveButton = wrapper
       .findAll('button')
       .find((button) => button.text().includes('Profil speichern'))
@@ -203,7 +208,7 @@ describe('SettingsView', () => {
 
     expect(profileUpdateSpy).toHaveBeenCalledWith({
       name: 'Alex Neu',
-      avatar: 'https://example.com/avatar.png'
+      avatar: 'emoji:🐻'
     })
     expect(profileUpdateEqSpy).toHaveBeenCalledWith('id', 'm-1')
     expect(fetchFamilyDataSpy).toHaveBeenCalledWith('u-1')

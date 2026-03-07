@@ -25,7 +25,9 @@ const profileError = ref<string | null>(null)
 const profileSuccess = ref<string | null>(null)
 const savingProfile = ref(false)
 const editDisplayName = ref('')
-const editAvatarUrl = ref('')
+const editAvatar = ref('')
+
+const avatarOptions = ['', 'emoji:😀', 'emoji:🐻', 'emoji:🦊', 'emoji:🐼', 'emoji:🐯']
 
 const profileName = computed(() => auth.member?.name ?? auth.displayName)
 const profileEmail = computed(() => auth.user?.email ?? 'Keine E-Mail')
@@ -34,7 +36,7 @@ const familyMemberCount = computed(() => members.value.length)
 
 onMounted(async () => {
   editDisplayName.value = auth.member?.name ?? ''
-  editAvatarUrl.value = auth.member?.avatar ?? ''
+  editAvatar.value = auth.member?.avatar ?? ''
 
   await loadMembers()
 })
@@ -81,6 +83,27 @@ function formatRole(role: string | null | undefined) {
   return 'Unbekannt'
 }
 
+function avatarEmoji(value: string | null | undefined) {
+  if (!value?.startsWith('emoji:')) return ''
+  return value.slice(6)
+}
+
+function avatarImageUrl(value: string | null | undefined) {
+  if (!value || value.startsWith('emoji:')) return ''
+
+  // Backward compatibility: show previously stored https image URLs.
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'https:' ? parsed.toString() : ''
+  } catch {
+    return ''
+  }
+}
+
+function avatarFallback(value: string | null | undefined, name: string) {
+  return avatarEmoji(value) || getInitials(name)
+}
+
 async function saveProfile() {
   if (!auth.member || !auth.user) return
 
@@ -100,7 +123,7 @@ async function saveProfile() {
       .from('family_members')
       .update({
         name: cleanName,
-        avatar: editAvatarUrl.value.trim() || null
+        avatar: editAvatar.value.trim() || null
       })
       .eq('id', auth.member.id)
       .select('id')
@@ -132,8 +155,12 @@ async function saveProfile() {
       <CardContent class="space-y-3">
         <div class="flex items-center gap-3 rounded-md border p-3">
           <Avatar class="h-12 w-12">
-            <AvatarImage v-if="editAvatarUrl" :src="editAvatarUrl" :alt="profileName" />
-            <AvatarFallback>{{ getInitials(profileName) }}</AvatarFallback>
+            <AvatarImage
+              v-if="avatarImageUrl(editAvatar)"
+              :src="avatarImageUrl(editAvatar)"
+              :alt="profileName"
+            />
+            <AvatarFallback>{{ avatarFallback(editAvatar, profileName) }}</AvatarFallback>
           </Avatar>
           <div>
             <p class="text-xs text-muted-foreground">Vorschau</p>
@@ -157,8 +184,24 @@ async function saveProfile() {
           <Input id="profile-display-name" v-model="editDisplayName" placeholder="z.B. Mama" />
         </div>
         <div class="space-y-2 rounded-md border p-3">
-          <Label for="profile-avatar-url">Avatar-URL bearbeiten</Label>
-          <Input id="profile-avatar-url" v-model="editAvatarUrl" placeholder="https://..." />
+          <Label>Avatar waehlen</Label>
+          <div class="grid grid-cols-6 gap-2">
+            <button
+              v-for="option in avatarOptions"
+              :key="option || 'initials'"
+              type="button"
+              :aria-label="`Avatar ${avatarFallback(option, profileName)}`"
+              :class="[
+                'focus-visible:ring-ring inline-flex h-10 w-10 items-center justify-center rounded-full border text-lg transition focus-visible:ring-2 focus-visible:outline-none',
+                editAvatar === option
+                  ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                  : 'border-input hover:bg-accent'
+              ]"
+              @click="editAvatar = option"
+            >
+              <span>{{ avatarFallback(option, profileName) }}</span>
+            </button>
+          </div>
         </div>
         <p v-if="profileError" class="text-sm text-destructive">{{ profileError }}</p>
         <p v-if="profileSuccess" class="text-sm text-emerald-600">{{ profileSuccess }}</p>
@@ -202,8 +245,12 @@ async function saveProfile() {
           <div v-else class="space-y-3">
             <div v-for="m in members" :key="m.id" class="flex items-center gap-3">
               <Avatar class="h-9 w-9">
-                <AvatarImage v-if="m.avatar" :src="m.avatar" :alt="m.name" />
-                <AvatarFallback>{{ getInitials(m.name) }}</AvatarFallback>
+                <AvatarImage
+                  v-if="avatarImageUrl(m.avatar)"
+                  :src="avatarImageUrl(m.avatar)"
+                  :alt="m.name"
+                />
+                <AvatarFallback>{{ avatarFallback(m.avatar, m.name) }}</AvatarFallback>
               </Avatar>
               <div class="flex-1">
                 <p class="text-sm font-medium">{{ m.name }}</p>
