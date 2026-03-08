@@ -56,7 +56,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function initAuth() {
-    // Get current session immediately
     const { data } = await supabase.auth.getSession()
     await handleSession(data.session)
 
