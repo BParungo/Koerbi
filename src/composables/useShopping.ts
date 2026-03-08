@@ -22,7 +22,7 @@ export function useShopping() {
         .from('shopping_lists')
         .select('*')
         .eq('family_id', auth.family.id)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
     )
 
     if (data) {
@@ -46,11 +46,7 @@ export function useShopping() {
     if (!list) return
 
     const { data: items } = await query(
-      supabase
-        .from('shopping_items')
-        .select('*')
-        .eq('list_id', listId)
-        .order('sort_order'),
+      supabase.from('shopping_items').select('*').eq('list_id', listId).order('sort_order')
     )
     list.items = (items as ShoppingItem[]) ?? []
   }
@@ -65,10 +61,10 @@ export function useShopping() {
         .insert({
           family_id: auth.family.id,
           created_by: auth.user.id,
-          name,
+          name
         })
         .select()
-        .single(),
+        .single()
     )
 
     if (err || !data) {
@@ -94,7 +90,7 @@ export function useShopping() {
 
   async function deleteList(listId: string): Promise<boolean> {
     const { error: err } = await query(
-      supabase.from('shopping_lists').delete().eq('id', listId).select().single(),
+      supabase.from('shopping_lists').delete().eq('id', listId).select().single()
     )
     if (err) {
       error.value = err
@@ -116,7 +112,7 @@ export function useShopping() {
 
   async function renameList(listId: string, name: string): Promise<boolean> {
     const { error: err } = await query(
-      supabase.from('shopping_lists').update({ name }).eq('id', listId).select().single(),
+      supabase.from('shopping_lists').update({ name }).eq('id', listId).select().single()
     )
     if (err) {
       error.value = err
@@ -143,10 +139,10 @@ export function useShopping() {
           amount: form.amount || null,
           unit: form.unit || null,
           category: form.category || null,
-          assigned_to: form.assigned_to ?? null,
+          assigned_to: form.assigned_to ?? null
         })
         .select()
-        .single(),
+        .single()
     )
 
     if (addErr) {
@@ -173,7 +169,7 @@ export function useShopping() {
       .update({
         done: newDone,
         done_by: item.done_by,
-        done_at: item.done_at,
+        done_at: item.done_at
       })
       .eq('id', id)
   }
@@ -219,7 +215,7 @@ export function useShopping() {
           event: '*',
           schema: 'public',
           table: 'shopping_items',
-          filter: `list_id=eq.${listId}`,
+          filter: `list_id=eq.${listId}`
         },
         (payload) => {
           if (!store.activeList || store.activeList.id !== listId) return
@@ -240,7 +236,7 @@ export function useShopping() {
             const oldId = (payload.old as { id: string }).id
             store.activeList.items = store.activeList.items.filter((i) => i.id !== oldId)
           }
-        },
+        }
       )
       .subscribe((status, err) => {
         if (err) console.error('[Realtime] Subscription error:', err)
@@ -272,6 +268,6 @@ export function useShopping() {
     clearDone,
     assignItem,
     subscribeRealtime,
-    unsubscribeRealtime,
+    unsubscribeRealtime
   }
 }
