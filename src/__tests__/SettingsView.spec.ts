@@ -166,6 +166,36 @@ describe('SettingsView', () => {
     expect(signOutSpy).toHaveBeenCalledTimes(1)
   })
 
+  it('generates and copies invite link', async () => {
+    const store = useAuthStore()
+    store.user = { id: 'u-1', email: 'alex@example.com' } as never
+    store.member = {
+      id: 'm-1',
+      family_id: 'f-1',
+      user_id: 'u-1',
+      name: 'Alex',
+      role: 'admin',
+      avatar: null,
+      joined_at: null
+    }
+    store.family = {
+      id: 'f-1',
+      name: 'Familie Test',
+      invite_code: 'ABCD1234',
+      created_at: null,
+      created_by: null
+    }
+
+    const wrapper = mount(SettingsView)
+    await flushPromises()
+
+    const linkButton = wrapper.find('button[aria-label="Einladungslink generieren"]')
+    await linkButton.trigger('click')
+
+    expect(writeTextSpy).toHaveBeenCalledWith('http://localhost:3000/invite/ABCD1234')
+    expect(wrapper.text()).toContain('Generierter Einladungslink')
+  })
+
   it('saves edited display name and avatar preset', async () => {
     const store = useAuthStore()
     store.user = { id: 'u-1', email: 'alex@example.com' } as never

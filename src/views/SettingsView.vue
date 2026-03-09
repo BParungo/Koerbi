@@ -2,6 +2,8 @@
 import { computed, ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAuth } from '@/composables/useAuth'
+import { usePwaInstall } from '@/composables/usePwaInstall'
+import { buildInviteLink } from '@/utils/invite'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import { Button } from '@/components/ui/button'
@@ -16,14 +18,18 @@ import type { FamilyMember } from '@/types'
 
 const auth = useAuthStore()
 const { signOut } = useAuth()
+const { canInstall, isInstalled, showIosHint, install } = usePwaInstall()
 
 const members = ref<FamilyMember[]>([])
 const loadingMembers = ref(false)
 const copyError = ref<string | null>(null)
 const copied = ref(false)
+const copiedInviteLink = ref(false)
+const generatedInviteLink = ref('')
 const profileError = ref<string | null>(null)
 const profileSuccess = ref<string | null>(null)
 const savingProfile = ref(false)
+const installingPwa = ref(false)
 const editDisplayName = ref('')
 const editAvatar = ref('')
 
@@ -70,6 +76,21 @@ async function copyInviteCode() {
     setTimeout(() => (copied.value = false), 2000)
   } catch {
     copyError.value = 'Kopieren nicht moeglich. Bitte manuell kopieren.'
+  }
+}
+
+async function generateInviteLink() {
+  if (!auth.family) return
+
+  generatedInviteLink.value = buildInviteLink(auth.family.invite_code)
+
+  try {
+    copyError.value = null
+    await navigator.clipboard.writeText(generatedInviteLink.value)
+    copiedInviteLink.value = true
+    setTimeout(() => (copiedInviteLink.value = false), 2000)
+  } catch {
+    copyError.value = 'Kopieren nicht moeglich. Bitte Link manuell kopieren.'
   }
 }
 
@@ -140,6 +161,12 @@ async function saveProfile() {
   await loadMembers()
   profileSuccess.value = 'Profil gespeichert.'
   savingProfile.value = false
+}
+
+async function installPwa() {
+  installingPwa.value = true
+  await install()
+  installingPwa.value = false
 }
 </script>
 
@@ -234,6 +261,18 @@ async function saveProfile() {
             </Button>
           </div>
           <p v-if="copyError" class="mt-2 text-sm text-destructive">{{ copyError }}</p>
+          <Button
+            variant="secondary"
+            class="mt-3 w-full"
+            aria-label="Einladungslink generieren"
+            @click="generateInviteLink"
+          >
+            {{ copiedInviteLink ? 'Einladungslink kopiert' : 'Einladungslink generieren' }}
+          </Button>
+          <div v-if="generatedInviteLink" class="mt-3 space-y-1">
+            <p class="text-xs text-muted-foreground">Generierter Einladungslink</p>
+            <Input :model-value="generatedInviteLink" readonly class="font-mono text-xs" />
+          </div>
         </div>
 
         <Separator />
@@ -259,6 +298,29 @@ async function saveProfile() {
             </div>
           </div>
         </div>
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>App installieren</CardTitle>
+        <CardDescription>Schneller Zugriff direkt vom Homescreen</CardDescription>
+      </CardHeader>
+      <CardContent class="space-y-3">
+        <p v-if="isInstalled" class="text-sm text-emerald-600">App ist bereits installiert.</p>
+
+        <Button v-else-if="canInstall" class="w-full" :disabled="installingPwa" @click="installPwa">
+          {{ installingPwa ? 'Installiere...' : 'App installieren' }}
+        </Button>
+
+        <div v-else-if="showIosHint" class="space-y-1 text-sm text-muted-foreground">
+          <p>Auf iOS gibt es keinen automatischen Install-Prompt.</p>
+          <p>Safari: Teilen -> Zum Home-Bildschirm.</p>
+        </div>
+
+        <p v-else class="text-sm text-muted-foreground">
+          Install-Option wird angezeigt, sobald dein Browser die Voraussetzungen erfuellt.
+        </p>
       </CardContent>
     </Card>
 
