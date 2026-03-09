@@ -10,7 +10,24 @@ const auth = useAuthStore()
 const route = useRoute()
 
 const familyName = computed(() => auth.family?.name ?? 'Koerbi')
-const avatarUrl = computed(() => auth.user?.user_metadata?.avatar_url as string | undefined)
+const memberAvatar = computed(() => auth.member?.avatar ?? null)
+const avatarEmoji = computed(() => {
+  const value = memberAvatar.value
+  if (!value?.startsWith('emoji:')) return ''
+  return value.slice(6)
+})
+const avatarUrl = computed(() => {
+  const value = memberAvatar.value
+  if (!value || value.startsWith('emoji:')) return undefined
+
+  // Backward compatibility for previously stored URLs.
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'https:' ? parsed.toString() : undefined
+  } catch {
+    return undefined
+  }
+})
 const initials = computed(() => auth.displayName.slice(0, 2).toUpperCase())
 
 type DesktopNavItem = {
@@ -70,7 +87,7 @@ function isActive(item: DesktopNavItem) {
         <span class="max-w-28 truncate text-sm text-muted-foreground">{{ auth.displayName }}</span>
         <Avatar class="h-9 w-9 border">
           <AvatarImage v-if="avatarUrl" :src="avatarUrl" :alt="auth.displayName" />
-          <AvatarFallback>{{ initials }}</AvatarFallback>
+          <AvatarFallback>{{ avatarEmoji || initials }}</AvatarFallback>
         </Avatar>
       </div>
     </div>

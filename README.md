@@ -35,6 +35,12 @@ bun install
 bun dev
 ```
 
+### PWA (Installierbar)
+
+- Die App stellt ein `manifest.webmanifest` bereit und registriert im Production-Build einen Service Worker.
+- Nach dem Deployment kann die App im Browser installiert werden ("Install app" / "Zum Startbildschirm hinzufuegen").
+- Hinweis: Service Worker wird nur in Produktion registriert (`import.meta.env.PROD`).
+
 ### Type-Check, Compile and Minify for Production
 
 ```sh

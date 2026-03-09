@@ -1,0 +1,18 @@
+{
+  "name": "Koerbi",
+  "short_name": "Koerbi",
+  "description": "Familienrezepte und Einkaufsliste in einer App.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f9f2",
+  "theme_color": "#2e7d32",
+  "icons": [
+    {
+      "src": "/koerbi.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
