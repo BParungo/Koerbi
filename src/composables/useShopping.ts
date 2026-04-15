@@ -255,7 +255,7 @@ export function useShopping() {
 
   return {
     error,
-    loading,
+    addingItem: loading,
     fetchLists,
     createList,
     deleteList,

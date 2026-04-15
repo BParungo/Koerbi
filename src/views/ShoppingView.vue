@@ -26,7 +26,7 @@ import type { FamilyMember, CreateShoppingItemForm } from '@/types'
 const store = useShoppingStore()
 const auth = useAuthStore()
 const {
-  loading: addLoading,
+  addingItem: addLoading,
   fetchLists,
   createList,
   deleteList,
