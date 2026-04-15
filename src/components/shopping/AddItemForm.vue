@@ -68,7 +68,7 @@ function handleSubmit() {
     <div class="flex gap-2">
       <Input
         v-model="name"
-        placeholder="Artikel hinzuf\u00FCgen..."
+        placeholder="Artikel hinzufügen..."
         list="shopping-item-name-suggestions"
         autocomplete="off"
         required
