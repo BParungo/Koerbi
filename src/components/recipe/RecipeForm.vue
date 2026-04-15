@@ -20,40 +20,48 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const name = ref(props.recipe?.name ?? '')
-const emoji = ref(props.recipe?.emoji ?? '🍽️')
-const duration = ref(props.recipe?.duration ?? '')
-const servings = ref(props.recipe?.servings ?? 4)
-const category = ref(props.recipe?.category ?? '')
-const steps = ref<string[]>(props.recipe?.steps?.length ? [...props.recipe.steps] : [''])
-const ingredients = ref<IngredientRow[]>(
-  props.recipe?.ingredients?.length
-    ? props.recipe.ingredients.map((ing) => ({
-        name: ing.name,
-        amount: ing.amount ?? '',
-        unit: ing.unit ?? '',
-      }))
-    : [{ name: '', amount: '', unit: '' }],
-)
+function emptyIngredient(): IngredientRow {
+  return { name: '', amount: '', unit: '' }
+}
+
+function mapIngredient(ing: { name: string; amount?: string | null; unit?: string | null }): IngredientRow {
+  return { name: ing.name, amount: ing.amount ?? '', unit: ing.unit ?? '' }
+}
+
+function mapRecipeToForm(r: Recipe) {
+  return {
+    name: r.name,
+    emoji: r.emoji ?? '🍽️',
+    duration: r.duration ?? '',
+    servings: r.servings ?? 4,
+    category: r.category ?? '',
+    steps: r.steps?.length ? [...r.steps] : [''],
+    ingredients: r.ingredients?.length ? r.ingredients.map(mapIngredient) : [emptyIngredient()],
+  }
+}
+
+const initial = props.recipe ? mapRecipeToForm(props.recipe) : null
+const name = ref(initial?.name ?? '')
+const emoji = ref(initial?.emoji ?? '🍽️')
+const duration = ref(initial?.duration ?? '')
+const servings = ref(initial?.servings ?? 4)
+const category = ref(initial?.category ?? '')
+const steps = ref<string[]>(initial?.steps ?? [''])
+const ingredients = ref<IngredientRow[]>(initial?.ingredients ?? [emptyIngredient()])
 
 // Sync if recipe prop changes (e.g. after fetch)
 watch(
   () => props.recipe,
   (r) => {
     if (!r) return
-    name.value = r.name
-    emoji.value = r.emoji ?? '🍽️'
-    duration.value = r.duration ?? ''
-    servings.value = r.servings ?? 4
-    category.value = r.category ?? ''
-    steps.value = r.steps?.length ? [...r.steps] : ['']
-    ingredients.value = r.ingredients?.length
-      ? r.ingredients.map((ing) => ({
-          name: ing.name,
-          amount: ing.amount ?? '',
-          unit: ing.unit ?? '',
-        }))
-      : [{ name: '', amount: '', unit: '' }]
+    const mapped = mapRecipeToForm(r)
+    name.value = mapped.name
+    emoji.value = mapped.emoji
+    duration.value = mapped.duration
+    servings.value = mapped.servings
+    category.value = mapped.category
+    steps.value = mapped.steps
+    ingredients.value = mapped.ingredients
   },
 )
 
