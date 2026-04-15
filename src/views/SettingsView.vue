@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useAuth } from '@/composables/useAuth'
 import { usePwaInstall } from '@/composables/usePwaInstall'
 import { buildInviteLink } from '@/utils/invite'
+import { getAvatarEmoji, getAvatarImageUrl, getAvatarFallback } from '@/utils/avatar'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import { Button } from '@/components/ui/button'
@@ -94,35 +95,10 @@ async function generateInviteLink() {
   }
 }
 
-function getInitials(name: string) {
-  return name.slice(0, 2).toUpperCase()
-}
-
 function formatRole(role: string | null | undefined) {
   if (role === 'admin') return 'Admin'
   if (role === 'member') return 'Mitglied'
   return 'Unbekannt'
-}
-
-function avatarEmoji(value: string | null | undefined) {
-  if (!value?.startsWith('emoji:')) return ''
-  return value.slice(6)
-}
-
-function avatarImageUrl(value: string | null | undefined) {
-  if (!value || value.startsWith('emoji:')) return ''
-
-  // Backward compatibility: show previously stored https image URLs.
-  try {
-    const parsed = new URL(value)
-    return parsed.protocol === 'https:' ? parsed.toString() : ''
-  } catch {
-    return ''
-  }
-}
-
-function avatarFallback(value: string | null | undefined, name: string) {
-  return avatarEmoji(value) || getInitials(name)
 }
 
 async function saveProfile() {
@@ -183,11 +159,11 @@ async function installPwa() {
         <div class="flex items-center gap-3 rounded-md border p-3">
           <Avatar class="h-12 w-12">
             <AvatarImage
-              v-if="avatarImageUrl(editAvatar)"
-              :src="avatarImageUrl(editAvatar)"
+              v-if="getAvatarImageUrl(editAvatar)"
+              :src="getAvatarImageUrl(editAvatar)"
               :alt="profileName"
             />
-            <AvatarFallback>{{ avatarFallback(editAvatar, profileName) }}</AvatarFallback>
+            <AvatarFallback>{{ getAvatarFallback(editAvatar, profileName) }}</AvatarFallback>
           </Avatar>
           <div>
             <p class="text-xs text-muted-foreground">Vorschau</p>
@@ -217,7 +193,7 @@ async function installPwa() {
               v-for="option in avatarOptions"
               :key="option || 'initials'"
               type="button"
-              :aria-label="`Avatar ${avatarFallback(option, profileName)}`"
+              :aria-label="`Avatar ${getAvatarFallback(option, profileName)}`"
               :class="[
                 'focus-visible:ring-ring inline-flex h-10 w-10 items-center justify-center rounded-full border text-lg transition focus-visible:ring-2 focus-visible:outline-none',
                 editAvatar === option
@@ -226,7 +202,7 @@ async function installPwa() {
               ]"
               @click="editAvatar = option"
             >
-              <span>{{ avatarFallback(option, profileName) }}</span>
+              <span>{{ getAvatarFallback(option, profileName) }}</span>
             </button>
           </div>
         </div>
@@ -285,11 +261,11 @@ async function installPwa() {
             <div v-for="m in members" :key="m.id" class="flex items-center gap-3">
               <Avatar class="h-9 w-9">
                 <AvatarImage
-                  v-if="avatarImageUrl(m.avatar)"
-                  :src="avatarImageUrl(m.avatar)"
+                  v-if="getAvatarImageUrl(m.avatar)"
+                  :src="getAvatarImageUrl(m.avatar)"
                   :alt="m.name"
                 />
-                <AvatarFallback>{{ avatarFallback(m.avatar, m.name) }}</AvatarFallback>
+                <AvatarFallback>{{ getAvatarFallback(m.avatar, m.name) }}</AvatarFallback>
               </Avatar>
               <div class="flex-1">
                 <p class="text-sm font-medium">{{ m.name }}</p>

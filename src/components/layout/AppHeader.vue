@@ -5,29 +5,15 @@ import { useAuthStore } from '@/stores/auth.store'
 import { BookOpen, ShoppingCart, Settings } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarEmoji, getAvatarImageUrl, getAvatarFallback } from '@/utils/avatar'
 
 const auth = useAuthStore()
 const route = useRoute()
 
 const familyName = computed(() => auth.family?.name ?? 'Koerbi')
 const memberAvatar = computed(() => auth.member?.avatar ?? null)
-const avatarEmoji = computed(() => {
-  const value = memberAvatar.value
-  if (!value?.startsWith('emoji:')) return ''
-  return value.slice(6)
-})
-const avatarUrl = computed(() => {
-  const value = memberAvatar.value
-  if (!value || value.startsWith('emoji:')) return undefined
-
-  // Backward compatibility for previously stored URLs.
-  try {
-    const parsed = new URL(value)
-    return parsed.protocol === 'https:' ? parsed.toString() : undefined
-  } catch {
-    return undefined
-  }
-})
+const avatarEmoji = computed(() => getAvatarEmoji(memberAvatar.value))
+const avatarUrl = computed(() => getAvatarImageUrl(memberAvatar.value) || undefined)
 const initials = computed(() => auth.displayName.slice(0, 2).toUpperCase())
 
 type DesktopNavItem = {
