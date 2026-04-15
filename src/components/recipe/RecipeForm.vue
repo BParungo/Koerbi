@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import IngredientList from './IngredientList.vue'
-import { Plus, X, LoaderCircle } from 'lucide-vue-next'
+import { Plus, X, LoaderCircle, Camera } from 'lucide-vue-next'
 import type { Recipe, CreateRecipeForm } from '@/types'
 import type { IngredientRow } from './IngredientList.vue'
 
@@ -31,7 +31,6 @@ function mapIngredient(ing: { name: string; amount?: string | null; unit?: strin
 function mapRecipeToForm(r: Recipe) {
   return {
     name: r.name,
-    emoji: r.emoji ?? '🍽️',
     duration: r.duration ?? '',
     servings: r.servings ?? 4,
     category: r.category ?? '',
@@ -42,12 +41,13 @@ function mapRecipeToForm(r: Recipe) {
 
 const initial = props.recipe ? mapRecipeToForm(props.recipe) : null
 const name = ref(initial?.name ?? '')
-const emoji = ref(initial?.emoji ?? '🍽️')
 const duration = ref(initial?.duration ?? '')
 const servings = ref(initial?.servings ?? 4)
 const category = ref(initial?.category ?? '')
 const steps = ref<string[]>(initial?.steps ?? [''])
 const ingredients = ref<IngredientRow[]>(initial?.ingredients ?? [emptyIngredient()])
+const imageFile = ref<File | null>(null)
+const imagePreview = ref<string | null>(props.recipe?.image_url ?? null)
 
 // Sync if recipe prop changes (e.g. after fetch)
 watch(
@@ -56,14 +56,22 @@ watch(
     if (!r) return
     const mapped = mapRecipeToForm(r)
     name.value = mapped.name
-    emoji.value = mapped.emoji
     duration.value = mapped.duration
     servings.value = mapped.servings
     category.value = mapped.category
     steps.value = mapped.steps
     ingredients.value = mapped.ingredients
+    imagePreview.value = r.image_url ?? null
   },
 )
+
+function onImageChange(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0] ?? null
+  imageFile.value = file
+  if (file) {
+    imagePreview.value = URL.createObjectURL(file)
+  }
+}
 
 function addStep() {
   steps.value.push('')
@@ -76,28 +84,45 @@ function removeStep(index: number) {
 function handleSubmit() {
   emit('submit', {
     name: name.value,
-    emoji: emoji.value,
     duration: duration.value,
     servings: servings.value,
     category: category.value,
     steps: steps.value,
     ingredients: ingredients.value,
+    image: imageFile.value,
   })
 }
 </script>
 
 <template>
   <form class="space-y-6" @submit.prevent="handleSubmit">
-    <!-- Name & Emoji -->
-    <div class="flex items-end gap-3">
-      <div class="w-20">
-        <Label for="emoji">Emoji</Label>
-        <Input id="emoji" v-model="emoji" class="text-center text-2xl" />
+    <!-- Bild -->
+    <div class="space-y-2">
+      <Label>Foto</Label>
+      <div
+        class="relative flex h-40 w-full cursor-pointer items-center justify-center overflow-hidden rounded-md border border-dashed bg-muted"
+        @click="($refs.imageInput as HTMLInputElement).click()"
+      >
+        <img v-if="imagePreview" :src="imagePreview" class="h-full w-full object-cover" alt="Vorschau" />
+        <div v-else class="flex flex-col items-center gap-1 text-muted-foreground">
+          <Camera class="h-8 w-8" />
+          <span class="text-sm">Foto aufnehmen oder wählen</span>
+        </div>
       </div>
-      <div class="flex-1">
-        <Label for="name">Name *</Label>
-        <Input id="name" v-model="name" placeholder="z.B. Spaghetti Bolognese" required />
-      </div>
+      <input
+        ref="imageInput"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        class="hidden"
+        @change="onImageChange"
+      />
+    </div>
+
+    <!-- Name -->
+    <div>
+      <Label for="name">Name *</Label>
+      <Input id="name" v-model="name" placeholder="z.B. Spaghetti Bolognese" required />
     </div>
 
     <!-- Category & Duration & Servings -->

@@ -8,12 +8,12 @@ export type Recipe = Tables<'recipes'> & { ingredients: Ingredient[] }
 
 export interface CreateRecipeForm {
   name: string
-  emoji: string
   duration: string
   servings: number
   category: string
   steps: string[]
   ingredients: { name: string; amount: string; unit: string }[]
+  image?: File | null
 }
 
 export type ShoppingItem = Tables<'shopping_items'>

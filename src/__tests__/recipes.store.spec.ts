@@ -24,7 +24,7 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
     name: 'Test Recipe',
     family_id: '1',
     created_by: '1',
-    emoji: '🍝',
+    emoji: null,
     duration: '30 min',
     servings: 4,
     category: 'Pasta',

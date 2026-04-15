@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Clock, Users, Pencil, Trash2, ShoppingCart } from 'lucide-vue-next'
+import { Clock, Users, Pencil, Trash2, ShoppingCart, UtensilsCrossed } from 'lucide-vue-next'
 import { formatDate } from '@/utils/format'
 import type { Recipe } from '@/types'
 
@@ -23,7 +23,10 @@ const emit = defineEmits<{
     <div class="flex items-start justify-between">
       <div>
         <div class="flex items-center gap-3">
-          <span class="text-4xl">{{ recipe.emoji ?? '🍽️' }}</span>
+          <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+            <img v-if="recipe.image_url" :src="recipe.image_url" class="h-full w-full object-cover" :alt="recipe.name" />
+            <UtensilsCrossed v-else class="h-8 w-8 text-muted-foreground" />
+          </div>
           <div>
             <h1 class="text-2xl font-bold">{{ recipe.name }}</h1>
             <div class="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
@@ -64,12 +67,8 @@ const emit = defineEmits<{
     <div v-if="recipe.ingredients?.length">
       <h2 class="mb-3 text-lg font-semibold">Zutaten</h2>
       <ul class="space-y-2">
-        <li
-          v-for="ing in recipe.ingredients"
-          :key="ing.id"
-          class="flex items-baseline gap-2"
-        >
-          <span v-if="ing.amount || ing.unit" class="min-w-[80px] text-sm font-medium">
+        <li v-for="ing in recipe.ingredients" :key="ing.id" class="flex items-baseline gap-2">
+          <span v-if="ing.amount || ing.unit" class="min-w-20 text-sm font-medium">
             {{ ing.amount }} {{ ing.unit }}
           </span>
           <span class="text-sm">{{ ing.name }}</span>
@@ -83,12 +82,10 @@ const emit = defineEmits<{
     <div v-if="recipe.steps?.length">
       <h2 class="mb-3 text-lg font-semibold">Zubereitung</h2>
       <ol class="space-y-4">
-        <li
-          v-for="(step, index) in recipe.steps"
-          :key="index"
-          class="flex gap-3"
-        >
-          <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+        <li v-for="(step, index) in recipe.steps" :key="index" class="flex gap-3">
+          <span
+            class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground"
+          >
             {{ index + 1 }}
           </span>
           <p class="text-sm leading-relaxed">{{ step }}</p>

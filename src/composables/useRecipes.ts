@@ -63,6 +63,25 @@ export function useRecipes() {
     )
   }
 
+  async function uploadRecipeImage(file: File, recipeId: string): Promise<string | null> {
+    if (!auth.family) return null
+
+    const ext = file.name.split('.').pop()
+    const path = `${auth.family.id}/${recipeId}.${ext}`
+
+    const { error: uploadErr } = await supabase.storage
+      .from('recipe-images')
+      .upload(path, file, { upsert: true })
+
+    if (uploadErr) {
+      error.value = uploadErr.message
+      return null
+    }
+
+    const { data } = supabase.storage.from('recipe-images').getPublicUrl(path)
+    return data.publicUrl
+  }
+
   async function createRecipe(form: CreateRecipeForm): Promise<Recipe | null> {
     if (!auth.family || !auth.user) return null
     error.value = null
@@ -75,7 +94,6 @@ export function useRecipes() {
           family_id: auth.family.id,
           created_by: auth.user.id,
           name: form.name,
-          emoji: form.emoji || '🍽️',
           duration: form.duration || null,
           servings: form.servings,
           category: form.category || null,
@@ -91,6 +109,13 @@ export function useRecipes() {
       return null
     }
 
+    if (form.image) {
+      const imageUrl = await uploadRecipeImage(form.image, recipe.id)
+      if (imageUrl) {
+        await supabase.from('recipes').update({ image_url: imageUrl }).eq('id', recipe.id)
+      }
+    }
+
     await syncIngredients(recipe.id, form.ingredients)
     await fetchRecipes()
     loading.value = false
@@ -101,17 +126,22 @@ export function useRecipes() {
     error.value = null
     loading.value = true
 
+    let imageUrl: string | undefined
+    if (form.image) {
+      imageUrl = (await uploadRecipeImage(form.image, id)) ?? undefined
+    }
+
     const { error: updateErr } = await query(
       supabase
         .from('recipes')
         .update({
           name: form.name,
-          emoji: form.emoji || '🍽️',
           duration: form.duration || null,
           servings: form.servings,
           category: form.category || null,
           steps: form.steps.filter((s) => s.trim()),
           updated_at: new Date().toISOString(),
+          ...(imageUrl !== undefined ? { image_url: imageUrl } : {}),
         })
         .eq('id', id)
         .select()
@@ -179,6 +209,7 @@ export function useRecipes() {
     loading,
     fetchRecipes,
     fetchRecipe,
+    uploadRecipeImage,
     createRecipe,
     updateRecipe,
     deleteRecipe,
