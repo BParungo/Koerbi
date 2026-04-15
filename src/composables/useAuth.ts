@@ -1,6 +1,6 @@
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
-import { authQuery } from '@/lib/supabase-query'
+import { query } from '@/lib/supabase-query'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAsyncState } from '@/composables/useAsyncState'
 
@@ -12,7 +12,7 @@ export function useAuth() {
   async function signIn(email: string, password: string) {
     error.value = null
     loading.value = true
-    const result = await authQuery(supabase.auth.signInWithPassword({ email, password }))
+    const result = await query(supabase.auth.signInWithPassword({ email, password }))
     loading.value = false
     error.value = result.error
     return !result.error
@@ -21,7 +21,7 @@ export function useAuth() {
   async function signUp(email: string, password: string) {
     error.value = null
     loading.value = true
-    const result = await authQuery(supabase.auth.signUp({ email, password }))
+    const result = await query(supabase.auth.signUp({ email, password }))
     loading.value = false
     error.value = result.error
     return !result.error

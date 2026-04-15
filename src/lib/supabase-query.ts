@@ -5,14 +5,22 @@ export type QueryResult<T> = {
   error: string | null
 }
 
+type AnySupabaseResponse<T> =
+  | PostgrestSingleResponse<T>
+  | AuthResponse
+  | AuthOtpResponse
+
 /**
- * Wraps a Supabase Postgrest query with unified error handling.
+ * Wraps a Supabase query or Auth call with unified error handling.
  *
- * Usage:
+ * Usage (PostgREST):
  *   const { data, error } = await query(supabase.from('families').select('*'))
+ *
+ * Usage (Auth):
+ *   const { data, error } = await query(supabase.auth.signInWithPassword({ email, password }))
  */
 export async function query<T>(
-  promise: PromiseLike<PostgrestSingleResponse<T>>,
+  promise: PromiseLike<AnySupabaseResponse<T>>,
 ): Promise<QueryResult<T>> {
   const { data, error } = await promise
 
@@ -21,24 +29,5 @@ export async function query<T>(
     return { data: null, error: error.message }
   }
 
-  return { data, error: null }
-}
-
-/**
- * Wraps a Supabase Auth call with unified error handling.
- *
- * Usage:
- *   const { data, error } = await authQuery(supabase.auth.signInWithPassword({ email, password }))
- */
-export async function authQuery<T extends AuthResponse | AuthOtpResponse>(
-  promise: PromiseLike<T>,
-): Promise<QueryResult<T['data']>> {
-  const { data, error } = await promise
-
-  if (error) {
-    console.error(`[Supabase Auth] ${error.message}`, error)
-    return { data: null, error: error.message }
-  }
-
-  return { data, error: null }
+  return { data: data as T, error: null }
 }
