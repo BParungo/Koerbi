@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useShoppingStore } from '@/stores/shopping.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useShopping } from '@/composables/useShopping'
+import { useRealtimeSubscription } from '@/composables/useRealtimeSubscription'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import ProgressBar from '@/components/shopping/ProgressBar.vue'
@@ -37,9 +38,9 @@ const {
   deleteItem,
   clearDone,
   assignItem,
-  subscribeRealtime,
-  unsubscribeRealtime
 } = useShopping()
+
+useRealtimeSubscription(computed(() => store.activeListId))
 
 const members = ref<FamilyMember[]>([])
 const recipeNames = ref<Record<string, string>>({})
@@ -71,7 +72,6 @@ const itemNameSuggestions = computed(() => {
 
 onMounted(async () => {
   await fetchLists()
-  subscribeRealtime()
 
   if (auth.family) {
     const { data } = await query(
@@ -91,10 +91,6 @@ onMounted(async () => {
   }
 })
 
-onUnmounted(() => {
-  unsubscribeRealtime()
-})
-
 async function handleAddItem(form: CreateShoppingItemForm) {
   await addItem(form)
 }
@@ -104,7 +100,6 @@ async function handleCreateList() {
   await createList(newListName.value.trim())
   newListName.value = ''
   showNewListDialog.value = false
-  subscribeRealtime() // re-subscribe to new active list
 }
 
 async function handleSwitchList(listId: string) {
@@ -130,7 +125,6 @@ async function handleDeleteList() {
   if (!store.activeListId) return
   await deleteList(store.activeListId)
   showDeleteListDialog.value = false
-  subscribeRealtime() // re-subscribe to new active list
 }
 </script>
 

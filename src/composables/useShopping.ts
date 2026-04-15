@@ -10,8 +10,6 @@ export function useShopping() {
   const store = useShoppingStore()
   const { error, loading } = useAsyncState()
 
-  let subscription: ReturnType<typeof supabase.channel> | null = null
-
   async function fetchLists() {
     if (!auth.family) return
     store.loading = true
@@ -84,7 +82,6 @@ export function useShopping() {
     if (list && !list.items.length) {
       await loadItemsForList(listId)
     }
-    subscribeRealtime() // internally cleans up old subscription
   }
 
   async function deleteList(listId: string): Promise<boolean> {
@@ -104,7 +101,6 @@ export function useShopping() {
       if (store.activeListId) {
         await loadItemsForList(store.activeListId)
       }
-      subscribeRealtime() // re-subscribe (or cleanup if no list left)
     }
     return true
   }
@@ -198,61 +194,6 @@ export function useShopping() {
     await supabase.from('shopping_items').update({ assigned_to: userId }).eq('id', id)
   }
 
-  function subscribeRealtime() {
-    // Always cleanup previous subscription first
-    unsubscribeRealtime()
-
-    if (!store.activeList) return
-
-    const listId = store.activeList.id
-
-    subscription = supabase
-      .channel(`shopping_items:${listId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'shopping_items',
-          filter: `list_id=eq.${listId}`
-        },
-        (payload) => {
-          if (!store.activeList || store.activeList.id !== listId) return
-
-          if (payload.eventType === 'INSERT') {
-            const newItem = payload.new as ShoppingItem
-            const exists = store.activeList.items.some((i) => i.id === newItem.id)
-            if (!exists) store.activeList.items.push(newItem)
-          }
-
-          if (payload.eventType === 'UPDATE') {
-            const updatedItem = payload.new as ShoppingItem
-            const idx = store.activeList.items.findIndex((i) => i.id === updatedItem.id)
-            if (idx !== -1) store.activeList.items[idx] = updatedItem
-          }
-
-          if (payload.eventType === 'DELETE') {
-            const oldId = (payload.old as { id: string }).id
-            store.activeList.items = store.activeList.items.filter((i) => i.id !== oldId)
-          }
-        }
-      )
-      .subscribe((status, err) => {
-        if (err) console.error('[Realtime] Subscription error:', err)
-        if (status === 'CHANNEL_ERROR') {
-          console.error('[Realtime] Channel error, retrying in 5s...')
-          setTimeout(() => subscribeRealtime(), 5000)
-        }
-      })
-  }
-
-  function unsubscribeRealtime() {
-    if (subscription) {
-      supabase.removeChannel(subscription)
-      subscription = null
-    }
-  }
-
   return {
     error,
     addingItem: loading,
@@ -266,7 +207,5 @@ export function useShopping() {
     deleteItem,
     clearDone,
     assignItem,
-    subscribeRealtime,
-    unsubscribeRealtime
   }
 }
