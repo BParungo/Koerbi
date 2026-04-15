@@ -1,15 +1,14 @@
-import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import { useAuthStore } from '@/stores/auth.store'
 import { useShoppingStore } from '@/stores/shopping.store'
+import { useAsyncState } from '@/composables/useAsyncState'
 import type { ShoppingItem, ShoppingList, CreateShoppingItemForm } from '@/types'
 
 export function useShopping() {
   const auth = useAuthStore()
   const store = useShoppingStore()
-  const error = ref<string | null>(null)
-  const loading = ref(false)
+  const { error, loading } = useAsyncState()
 
   let subscription: ReturnType<typeof supabase.channel> | null = null
 

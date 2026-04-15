@@ -1,14 +1,13 @@
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { authQuery } from '@/lib/supabase-query'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAsyncState } from '@/composables/useAsyncState'
 
 export function useAuth() {
   const store = useAuthStore()
   const router = useRouter()
-  const error = ref<string | null>(null)
-  const loading = ref(false)
+  const { error, loading } = useAsyncState()
 
   async function signIn(email: string, password: string) {
     error.value = null

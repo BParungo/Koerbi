@@ -1,15 +1,14 @@
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAsyncState } from '@/composables/useAsyncState'
 import { parseInviteCode } from '@/utils/invite'
 
 export function useFamily() {
   const store = useAuthStore()
   const router = useRouter()
-  const error = ref<string | null>(null)
-  const loading = ref(false)
+  const { error, loading } = useAsyncState()
 
   async function createFamily(familyName: string, displayName: string) {
     if (!store.user) return false

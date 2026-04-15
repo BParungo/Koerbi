@@ -1,15 +1,14 @@
-import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRecipesStore } from '@/stores/recipes.store'
+import { useAsyncState } from '@/composables/useAsyncState'
 import type { Recipe, CreateRecipeForm } from '@/types'
 
 export function useRecipes() {
   const auth = useAuthStore()
   const store = useRecipesStore()
-  const error = ref<string | null>(null)
-  const loading = ref(false)
+  const { error, loading } = useAsyncState()
 
   async function fetchRecipes() {
     if (!auth.family) return
