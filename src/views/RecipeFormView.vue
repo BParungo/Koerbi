@@ -49,9 +49,6 @@ function handleCancel() {
       <Button variant="ghost" size="icon" @click="handleCancel">
         <ArrowLeft class="h-5 w-5" />
       </Button>
-      <h1 class="text-2xl font-bold">
-        {{ isEdit ? 'Rezept bearbeiten' : 'Neues Rezept' }}
-      </h1>
     </div>
 
     <LoadingSpinner v-if="fetching" />

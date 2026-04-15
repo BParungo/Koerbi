@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { BookOpen, ShoppingCart, Settings } from 'lucide-vue-next'
+import { BookOpen, ShoppingCart } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 
 type NavItem = {
-  routeName: 'recipes' | 'shopping' | 'settings'
+  routeName: 'recipes' | 'shopping'
   label: string
   icon: typeof BookOpen
   matchPrefix: string
@@ -16,7 +16,6 @@ const route = useRoute()
 const items: NavItem[] = [
   { routeName: 'recipes', label: 'Rezepte', icon: BookOpen, matchPrefix: '/recipes' },
   { routeName: 'shopping', label: 'Einkauf', icon: ShoppingCart, matchPrefix: '/shopping' },
-  { routeName: 'settings', label: 'Einstellungen', icon: Settings, matchPrefix: '/settings' }
 ]
 
 function isActive(item: NavItem) {
@@ -31,7 +30,7 @@ const activeLabel = computed(() => items.find((item) => isActive(item))?.label ?
     aria-label="Hauptnavigation"
     class="fixed bottom-0 left-0 right-0 z-30 border-t bg-background/95 pb-[max(env(safe-area-inset-bottom),0.5rem)] backdrop-blur supports-backdrop-filter:bg-background/90 md:hidden"
   >
-    <div class="mx-auto grid h-16 w-full max-w-3xl grid-cols-3 px-2">
+    <div class="mx-auto grid h-16 w-full max-w-3xl grid-cols-2 px-2">
       <RouterLink
         v-for="item in items"
         :key="item.routeName"

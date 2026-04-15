@@ -131,8 +131,7 @@ async function handleDeleteList() {
 <template>
   <div class="mx-auto max-w-lg space-y-4 p-4">
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Einkaufsliste</h1>
-      <Button size="sm" variant="outline" @click="showNewListDialog = true">
+<Button size="sm" variant="outline" @click="showNewListDialog = true">
         <Plus class="mr-1 h-4 w-4" />
         Neue Liste
       </Button>

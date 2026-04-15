@@ -24,8 +24,7 @@ onMounted(() => {
   <div class="mx-auto max-w-lg space-y-4 p-4">
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Rezepte</h1>
-      <RouterLink :to="{ name: 'recipe-new' }">
+<RouterLink :to="{ name: 'recipe-new' }">
         <Button size="sm">
           <Plus class="mr-1 h-4 w-4" />
           Neu

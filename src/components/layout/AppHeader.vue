@@ -5,16 +5,29 @@ import { useAuthStore } from '@/stores/auth.store'
 import { BookOpen, ShoppingCart, Settings } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getAvatarEmoji, getAvatarImageUrl, getAvatarFallback } from '@/utils/avatar'
+import { getAvatarEmoji, getAvatarImageUrl } from '@/utils/avatar'
 
 const auth = useAuthStore()
 const route = useRoute()
 
-const familyName = computed(() => auth.family?.name ?? 'Koerbi')
 const memberAvatar = computed(() => auth.member?.avatar ?? null)
 const avatarEmoji = computed(() => getAvatarEmoji(memberAvatar.value))
 const avatarUrl = computed(() => getAvatarImageUrl(memberAvatar.value) || undefined)
 const initials = computed(() => auth.displayName.slice(0, 2).toUpperCase())
+
+const pageTitles: Record<string, string> = {
+  recipes: 'Rezepte',
+  'recipe-new': 'Neues Rezept',
+  'recipe-detail': 'Rezept',
+  'recipe-edit': 'Rezept bearbeiten',
+  shopping: 'Einkauf',
+  settings: 'Einstellungen',
+}
+
+const pageTitle = computed(() => {
+  const name = String(route.name ?? '')
+  return pageTitles[name] ?? ''
+})
 
 type DesktopNavItem = {
   routeName: 'recipes' | 'shopping' | 'settings'
@@ -41,11 +54,13 @@ function isActive(item: DesktopNavItem) {
     class="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80"
   >
     <div class="mx-auto flex h-14 w-full max-w-3xl items-center justify-between gap-4 px-4">
-      <div class="min-w-0 shrink-0">
-        <p class="truncate text-sm text-muted-foreground">Familie</p>
-        <h1 class="truncate text-base font-semibold">{{ familyName }}</h1>
+      <!-- Logo + Seitentitel -->
+      <div class="flex min-w-0 flex-1 items-center gap-2">
+        <img src="/koerbi.svg" alt="Koerbi" class="h-9 w-auto shrink-0" />
+        <span v-if="pageTitle" class="truncate text-sm font-medium md:hidden">{{ pageTitle }}</span>
       </div>
 
+      <!-- Desktop Nav -->
       <nav
         v-if="showDesktopNav"
         class="hidden items-center gap-1 md:flex"
@@ -69,13 +84,13 @@ function isActive(item: DesktopNavItem) {
         </RouterLink>
       </nav>
 
-      <div class="flex shrink-0 items-center gap-2">
-        <span class="max-w-28 truncate text-sm text-muted-foreground">{{ auth.displayName }}</span>
+      <!-- User Avatar → Settings -->
+      <RouterLink :to="{ name: 'settings' }" class="shrink-0">
         <Avatar class="h-9 w-9 border">
           <AvatarImage v-if="avatarUrl" :src="avatarUrl" :alt="auth.displayName" />
           <AvatarFallback>{{ avatarEmoji || initials }}</AvatarFallback>
         </Avatar>
-      </div>
+      </RouterLink>
     </div>
   </header>
 </template>
