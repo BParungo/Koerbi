@@ -46,6 +46,23 @@ export function useRecipes() {
     return data as Recipe
   }
 
+  async function syncIngredients(recipeId: string, ingredients: CreateRecipeForm['ingredients']) {
+    await supabase.from('ingredients').delete().eq('recipe_id', recipeId)
+
+    const filtered = ingredients.filter((ing) => ing.name.trim())
+    if (filtered.length === 0) return
+
+    await supabase.from('ingredients').insert(
+      filtered.map((ing, i) => ({
+        recipe_id: recipeId,
+        name: ing.name,
+        amount: ing.amount || null,
+        unit: ing.unit || null,
+        sort_order: i,
+      })),
+    )
+  }
+
   async function createRecipe(form: CreateRecipeForm): Promise<Recipe | null> {
     if (!auth.family || !auth.user) return null
     error.value = null
@@ -74,19 +91,7 @@ export function useRecipes() {
       return null
     }
 
-    const ingredients = form.ingredients.filter((ing) => ing.name.trim())
-    if (ingredients.length > 0) {
-      await supabase.from('ingredients').insert(
-        ingredients.map((ing, i) => ({
-          recipe_id: recipe.id,
-          name: ing.name,
-          amount: ing.amount || null,
-          unit: ing.unit || null,
-          sort_order: i,
-        })),
-      )
-    }
-
+    await syncIngredients(recipe.id, form.ingredients)
     await fetchRecipes()
     loading.value = false
     return recipe as Recipe
@@ -119,22 +124,7 @@ export function useRecipes() {
       return false
     }
 
-    // Replace ingredients: delete old, insert new
-    await supabase.from('ingredients').delete().eq('recipe_id', id)
-
-    const ingredients = form.ingredients.filter((ing) => ing.name.trim())
-    if (ingredients.length > 0) {
-      await supabase.from('ingredients').insert(
-        ingredients.map((ing, i) => ({
-          recipe_id: id,
-          name: ing.name,
-          amount: ing.amount || null,
-          unit: ing.unit || null,
-          sort_order: i,
-        })),
-      )
-    }
-
+    await syncIngredients(id, form.ingredients)
     await fetchRecipes()
     loading.value = false
     return true
