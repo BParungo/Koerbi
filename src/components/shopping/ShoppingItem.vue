@@ -2,13 +2,14 @@
 import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Trash2 } from 'lucide-vue-next'
+import { Trash2, GripVertical } from 'lucide-vue-next'
 import type { ShoppingItem, FamilyMember } from '@/types'
 
 const props = defineProps<{
   item: ShoppingItem
   members: FamilyMember[]
   recipeName?: string
+  dragHandle?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -65,6 +66,12 @@ function onAssignChange(event: Event) {
     @pointerup="onPointerEnd"
     @pointercancel="onPointerEnd"
   >
+    <!-- Drag Handle -->
+    <GripVertical
+      v-if="dragHandle && !item.done"
+      class="drag-handle h-4 w-4 shrink-0 cursor-grab text-muted-foreground/50 active:cursor-grabbing"
+    />
+
     <!-- Checkbox -->
     <button
       class="flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors"

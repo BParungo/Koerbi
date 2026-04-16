@@ -185,6 +185,24 @@ export function useShopping() {
     store.activeList.items = store.activeList.items.filter((i) => !i.done)
   }
 
+  async function reorderItems(listId: string, orderedIds: string[]) {
+    const list = store.lists.find((l) => l.id === listId)
+    if (!list) return
+
+    // Optimistic update
+    orderedIds.forEach((id, index) => {
+      const item = list.items.find((i) => i.id === id)
+      if (item) item.sort_order = index
+    })
+
+    // Persist to Supabase
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        supabase.from('shopping_items').update({ sort_order: index }).eq('id', id),
+      ),
+    )
+  }
+
   async function assignItem(id: string, userId: string | null) {
     if (!store.activeList) return
     const item = store.activeList.items.find((i) => i.id === id)
@@ -207,5 +225,6 @@ export function useShopping() {
     deleteItem,
     clearDone,
     assignItem,
+    reorderItems,
   }
 }

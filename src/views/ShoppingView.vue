@@ -38,6 +38,7 @@ const {
   deleteItem,
   clearDone,
   assignItem,
+  reorderItems,
 } = useShopping()
 
 useRealtimeSubscription(computed(() => store.activeListId))
@@ -192,10 +193,12 @@ async function handleDeleteList() {
           :done-items="store.doneItems"
           :members="members"
           :recipe-names="recipeNames"
+          :list-id="store.activeListId!"
           @toggle="toggleItem"
           @delete="deleteItem"
           @assign="handleAssignItem"
           @clear-done="clearDone"
+          @reorder="reorderItems"
         />
       </template>
 

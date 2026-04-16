@@ -12,7 +12,9 @@ export const useShoppingStore = defineStore('shopping', () => {
   )
 
   const pendingItems = computed(() =>
-    (activeList.value?.items ?? []).filter((i) => !i.done),
+    (activeList.value?.items ?? [])
+      .filter((i) => !i.done)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
   )
 
   const doneItems = computed(() =>
