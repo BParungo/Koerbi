@@ -103,6 +103,25 @@ describe('shopping.store', () => {
       expect(store.pendingItems).toHaveLength(2)
       expect(store.pendingItems.map((i) => i.name)).toEqual(['Milch', 'Eier'])
     })
+
+    it('sorts pending items by sort_order', () => {
+      const store = useShoppingStore()
+      setList(store, [
+        makeItem({ name: 'C', done: false, sort_order: 2 }),
+        makeItem({ name: 'A', done: false, sort_order: 0 }),
+        makeItem({ name: 'B', done: false, sort_order: 1 }),
+      ])
+      expect(store.pendingItems.map((i) => i.name)).toEqual(['A', 'B', 'C'])
+    })
+
+    it('treats null sort_order as 0', () => {
+      const store = useShoppingStore()
+      setList(store, [
+        makeItem({ name: 'B', done: false, sort_order: 1 }),
+        makeItem({ name: 'A', done: false, sort_order: null }),
+      ])
+      expect(store.pendingItems.map((i) => i.name)).toEqual(['A', 'B'])
+    })
   })
 
   describe('doneItems', () => {
