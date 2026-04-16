@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useUnsavedChanges } from '@/composables/useUnsavedChanges'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -24,7 +25,11 @@ function emptyIngredient(): IngredientRow {
   return { name: '', amount: '', unit: '' }
 }
 
-function mapIngredient(ing: { name: string; amount?: string | null; unit?: string | null }): IngredientRow {
+function mapIngredient(ing: {
+  name: string
+  amount?: string | null
+  unit?: string | null
+}): IngredientRow {
   return { name: ing.name, amount: ing.amount ?? '', unit: ing.unit ?? '' }
 }
 
@@ -35,7 +40,7 @@ function mapRecipeToForm(r: Recipe) {
     servings: r.servings ?? 4,
     category: r.category ?? '',
     steps: r.steps?.length ? [...r.steps] : [''],
-    ingredients: r.ingredients?.length ? r.ingredients.map(mapIngredient) : [emptyIngredient()],
+    ingredients: r.ingredients?.length ? r.ingredients.map(mapIngredient) : [emptyIngredient()]
   }
 }
 
@@ -62,7 +67,7 @@ watch(
     steps.value = mapped.steps
     ingredients.value = mapped.ingredients
     imagePreview.value = r.image_url ?? null
-  },
+  }
 )
 
 function onImageChange(event: Event) {
@@ -81,6 +86,15 @@ function removeStep(index: number) {
   steps.value.splice(index, 1)
 }
 
+const isDirty = computed(
+  () =>
+    name.value.trim() !== '' ||
+    imageFile.value !== null ||
+    ingredients.value.some((i) => i.name.trim() !== '')
+)
+
+useUnsavedChanges(isDirty)
+
 function handleSubmit() {
   emit('submit', {
     name: name.value,
@@ -89,7 +103,7 @@ function handleSubmit() {
     category: category.value,
     steps: steps.value,
     ingredients: ingredients.value,
-    image: imageFile.value,
+    image: imageFile.value
   })
 }
 </script>
@@ -103,7 +117,12 @@ function handleSubmit() {
         class="relative flex h-40 w-full cursor-pointer items-center justify-center overflow-hidden rounded-md border border-dashed bg-muted"
         @click="($refs.imageInput as HTMLInputElement).click()"
       >
-        <img v-if="imagePreview" :src="imagePreview" class="h-full w-full object-cover" alt="Vorschau" />
+        <img
+          v-if="imagePreview"
+          :src="imagePreview"
+          class="h-full w-full object-cover"
+          alt="Vorschau"
+        />
         <div v-else class="flex flex-col items-center gap-1 text-muted-foreground">
           <Camera class="h-8 w-8" />
           <span class="text-sm">Foto aufnehmen oder wählen</span>
@@ -156,7 +175,7 @@ function handleSubmit() {
           <Textarea
             :model-value="step"
             placeholder="Schritt beschreiben..."
-            class="min-h-[60px] flex-1"
+            class="min-h-15 flex-1"
             @update:model-value="steps[index] = $event as string"
           />
           <Button
@@ -186,9 +205,7 @@ function handleSubmit() {
         <LoaderCircle v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
         {{ recipe ? 'Speichern' : 'Rezept erstellen' }}
       </Button>
-      <Button type="button" variant="outline" @click="emit('cancel')">
-        Abbrechen
-      </Button>
+      <Button type="button" variant="outline" @click="emit('cancel')"> Abbrechen </Button>
     </div>
   </form>
 </template>
