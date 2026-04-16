@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import IngredientList from './IngredientList.vue'
-import { Plus, X, LoaderCircle, Camera } from 'lucide-vue-next'
+import RecipeImportDialog from './RecipeImportDialog.vue'
+import { Plus, X, LoaderCircle, Camera, Download } from 'lucide-vue-next'
 import type { Recipe, CreateRecipeForm } from '@/types'
 import type { IngredientRow } from './IngredientList.vue'
+import type { ImportedRecipe } from '@/composables/useRecipeImport'
 
 const props = defineProps<{
   recipe?: Recipe
@@ -53,6 +55,18 @@ const steps = ref<string[]>(initial?.steps ?? [''])
 const ingredients = ref<IngredientRow[]>(initial?.ingredients ?? [emptyIngredient()])
 const imageFile = ref<File | null>(null)
 const imagePreview = ref<string | null>(props.recipe?.image_url ?? null)
+const importDialogOpen = ref(false)
+
+function onImported(imported: ImportedRecipe) {
+  name.value = imported.title
+  duration.value = imported.duration ?? ''
+  servings.value = imported.servings ?? 4
+  category.value = imported.category ?? ''
+  steps.value = imported.steps?.length ? imported.steps : ['']
+  ingredients.value = imported.ingredients?.length
+    ? imported.ingredients.map((i) => ({ name: i.name, amount: i.amount ?? '', unit: i.unit ?? '' }))
+    : [emptyIngredient()]
+}
 
 // Sync if recipe prop changes (e.g. after fetch)
 watch(
@@ -86,16 +100,20 @@ function removeStep(index: number) {
   steps.value.splice(index, 1)
 }
 
+const submitted = ref(false)
+
 const isDirty = computed(
   () =>
-    name.value.trim() !== '' ||
+    !submitted.value &&
+    (name.value.trim() !== '' ||
     imageFile.value !== null ||
-    ingredients.value.some((i) => i.name.trim() !== '')
+    ingredients.value.some((i) => i.name.trim() !== ''))
 )
 
 useUnsavedChanges(isDirty)
 
 function handleSubmit() {
+  submitted.value = true
   emit('submit', {
     name: name.value,
     duration: duration.value,
@@ -109,7 +127,20 @@ function handleSubmit() {
 </script>
 
 <template>
+  <RecipeImportDialog
+    v-model:open="importDialogOpen"
+    @imported="onImported"
+  />
+
   <form class="space-y-6" @submit.prevent="handleSubmit">
+    <!-- Import -->
+    <div class="flex justify-end">
+      <Button type="button" variant="outline" size="sm" @click="importDialogOpen = true">
+        <Download class="mr-1.5 h-4 w-4" />
+        Rezept importieren
+      </Button>
+    </div>
+
     <!-- Bild -->
     <div class="space-y-2">
       <Label>Foto</Label>
