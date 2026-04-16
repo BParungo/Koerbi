@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,8 +8,9 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '@/components/ui/accordion'
-import { SlidersHorizontal, Plus } from 'lucide-vue-next'
+import { SlidersHorizontal, Plus, Mic } from 'lucide-vue-next'
 import type { FamilyMember, CreateShoppingItemForm } from '@/types'
+import { useSpeechRecognition } from '@/composables/useSpeechRecognition'
 
 const props = defineProps<{
   members: FamilyMember[]
@@ -27,6 +28,66 @@ const amount = ref('')
 const unit = ref('')
 const category = ref('')
 const assignedTo = ref<string | null>(null)
+
+const { isSupported, isListening, transcript, start, stop } = useSpeechRecognition()
+const nameInputRef = ref<{ $el: HTMLInputElement } | null>(null)
+const userEditedDuringRecording = ref(false)
+
+function toggleMic() {
+  if (isListening.value) {
+    stop()
+  } else {
+    userEditedDuringRecording.value = false
+    start()
+  }
+}
+
+function onNameFocus() {
+  if (isListening.value) {
+    userEditedDuringRecording.value = true
+    stop()
+  }
+}
+
+watch(transcript, (value) => {
+  if (value.trim()) {
+    name.value = value.replace(/\bkomma\b|\bund\b/gi, ',')
+    nextTick(() => {
+      if (nameInputRef.value) {
+        const el = nameInputRef.value.$el
+        el.scrollLeft = el.scrollWidth
+      }
+    })
+  }
+})
+
+watch(isListening, (current, previous) => {
+  if (previous === true && current === false && !userEditedDuringRecording.value) {
+    nextTick(() => handleSubmit())
+  }
+})
+
+function handleSubmit() {
+  if (!name.value.trim()) return
+  const segments = name.value
+    .split(/,|\s+und\s+|\n/i)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  for (const segment of segments) {
+    emit('submit', {
+      name: segment,
+      amount: amount.value || undefined,
+      unit: unit.value || undefined,
+      category: category.value || undefined,
+      assigned_to: assignedTo.value
+    })
+  }
+  name.value = ''
+  amount.value = ''
+  unit.value = ''
+  category.value = ''
+  assignedTo.value = null
+}
 
 const normalizedCategorySuggestions = computed(() => {
   const unique = new Set<string>()
@@ -46,34 +107,32 @@ const normalizedItemNameSuggestions = computed(() => {
   return Array.from(unique)
 })
 
-function handleSubmit() {
-  if (!name.value.trim()) return
-  emit('submit', {
-    name: name.value.trim(),
-    amount: amount.value || undefined,
-    unit: unit.value || undefined,
-    category: category.value || undefined,
-    assigned_to: assignedTo.value
-  })
-  name.value = ''
-  amount.value = ''
-  unit.value = ''
-  category.value = ''
-  assignedTo.value = null
-}
 </script>
 
 <template>
   <form class="space-y-2" @submit.prevent="handleSubmit">
     <div class="flex gap-2">
       <Input
+        ref="nameInputRef"
         v-model="name"
-        placeholder="Artikel hinzufügen..."
+        :placeholder="isListening ? 'Sprechen Sie...' : 'Artikel hinzufügen...'"
         list="shopping-item-name-suggestions"
         autocomplete="off"
         required
         class="h-10 flex-1"
+        @focus="onNameFocus"
       />
+      <Button
+        v-if="isSupported"
+        type="button"
+        size="icon"
+        class="h-10 w-10"
+        :class="{ 'animate-pulse text-red-500': isListening }"
+        :aria-label="isListening ? 'Aufnahme stoppen' : 'Spracheingabe starten'"
+        @click="toggleMic"
+      >
+        <Mic class="h-4 w-4" />
+      </Button>
       <Button type="submit" size="icon" class="h-10 w-10" :disabled="loading || !name.trim()">
         <Plus class="h-4 w-4" />
       </Button>
