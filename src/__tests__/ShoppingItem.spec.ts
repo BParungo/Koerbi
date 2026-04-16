@@ -12,7 +12,7 @@ function makeMember(overrides: Partial<FamilyMember> = {}): FamilyMember {
     role: 'member',
     avatar: null,
     joined_at: null,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -32,17 +32,26 @@ function makeItem(overrides: Partial<ShoppingItemType> = {}): ShoppingItemType {
     from_recipe_id: null,
     sort_order: 0,
     created_at: '2026-01-01T00:00:00Z',
-    ...overrides
+    ...overrides,
   }
+}
+
+function getSwipeTarget(wrapper: ReturnType<typeof mount>) {
+  // The inner swipeable div (relative flex items-center)
+  return wrapper.find('div.relative.flex.items-center')
+}
+
+async function swipe(wrapper: ReturnType<typeof mount>, deltaX: number, deltaY = 0) {
+  const el = getSwipeTarget(wrapper)
+  await el.trigger('pointerdown', { clientX: 200, clientY: 100, pointerId: 1 })
+  await el.trigger('pointermove', { clientX: 200 + deltaX, clientY: 100 + deltaY, pointerId: 1 })
+  await el.trigger('pointerup', { clientX: 200 + deltaX, clientY: 100 + deltaY, pointerId: 1 })
 }
 
 describe('ShoppingItem', () => {
   it('emits assign when assignment changes', async () => {
     const wrapper = mount(ShoppingItem, {
-      props: {
-        item: makeItem(),
-        members: [makeMember()]
-      }
+      props: { item: makeItem(), members: [makeMember()] },
     })
 
     await wrapper.find('select').setValue('user-1')
@@ -51,20 +60,55 @@ describe('ShoppingItem', () => {
     expect(wrapper.emitted('assign')![0]).toEqual(['item-1', 'user-1'])
   })
 
-  it('emits delete after left swipe threshold is reached', async () => {
+  it('emits delete after left swipe beyond threshold', async () => {
     const wrapper = mount(ShoppingItem, {
-      props: {
-        item: makeItem(),
-        members: [makeMember()]
-      }
+      props: { item: makeItem(), members: [] },
     })
 
-    const row = wrapper.find('div.flex.items-center.gap-3.rounded-lg')
-    await row.trigger('pointerdown', { clientX: 200 })
-    await row.trigger('pointermove', { clientX: 100 })
-    await row.trigger('pointerup', { clientX: 100 })
+    await swipe(wrapper, -100)
 
     expect(wrapper.emitted('delete')).toBeTruthy()
     expect(wrapper.emitted('delete')![0]).toEqual(['item-1'])
+  })
+
+  it('does not emit delete when swipe is too short', async () => {
+    const wrapper = mount(ShoppingItem, {
+      props: { item: makeItem(), members: [] },
+    })
+
+    await swipe(wrapper, -30)
+
+    expect(wrapper.emitted('delete')).toBeFalsy()
+  })
+
+  it('does not emit delete when swipe is vertical', async () => {
+    const wrapper = mount(ShoppingItem, {
+      props: { item: makeItem(), members: [] },
+    })
+
+    // Vertical scroll: deltaY dominates over deltaX
+    await swipe(wrapper, -5, 80)
+
+    expect(wrapper.emitted('delete')).toBeFalsy()
+  })
+
+  it('does not emit delete on right swipe', async () => {
+    const wrapper = mount(ShoppingItem, {
+      props: { item: makeItem(), members: [] },
+    })
+
+    await swipe(wrapper, 100)
+
+    expect(wrapper.emitted('delete')).toBeFalsy()
+  })
+
+  it('does not render delete button', () => {
+    const wrapper = mount(ShoppingItem, {
+      props: { item: makeItem(), members: [] },
+    })
+
+    // No button with delete/trash functionality should exist
+    const buttons = wrapper.findAll('button')
+    expect(buttons.every((b) => !b.classes().includes('hover:text-destructive'))).toBe(true)
   })
 })
