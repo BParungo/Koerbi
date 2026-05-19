@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, onBeforeUnmount } from 'vue'
+import { onMounted, ref, computed, onBeforeUnmount, nextTick } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import { useAuthStore } from '@/stores/auth.store'
@@ -58,6 +58,7 @@ async function startScan() {
 async function rescan() {
   lookup.product.value = null
   lookup.error.value = null
+  await nextTick()
   await startScan()
 }
 
@@ -83,7 +84,7 @@ function statusColor(status: 'ok' | 'warning' | 'danger'): string {
     <div v-if="!lookup.product.value">
       <div
         :id="SCANNER_ELEMENT_ID"
-        class="relative aspect-video w-full overflow-hidden rounded-md border bg-black"
+        class="relative h-[70vh] w-full overflow-hidden rounded-md border bg-black [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
       />
       <p v-if="scanner.error.value" class="mt-2 text-sm text-destructive">
         {{ scanner.error.value }}
