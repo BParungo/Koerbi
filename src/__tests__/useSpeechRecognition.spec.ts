@@ -41,11 +41,15 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function makeEvent(results: { transcript: string; isFinal: boolean }[]): Event {
+function makeEvent(
+  results: { transcript: string; isFinal: boolean }[],
+  resultIndex = 0,
+): Event {
   const speechResults = results.map(({ transcript, isFinal }) =>
     Object.assign([{ transcript, confidence: 1 }], { isFinal, length: 1 })
   )
   return {
+    resultIndex,
     results: Object.assign(speechResults, {
       item: (i: number) => speechResults[i],
       length: speechResults.length,
@@ -133,5 +137,36 @@ describe('useSpeechRecognition', () => {
     vi.advanceTimersByTime(3000)
     expect(mockInstance.stop).not.toHaveBeenCalled()
     vi.useRealTimers()
+  })
+
+  it('dupliziert finale Ergebnisse nicht, wenn der Browser sie in mehreren Events wiederholt', () => {
+    const { transcript, start } = useSpeechRecognition()
+    start()
+    // Event 1: erstes finales Wort
+    mockInstance.onresult!(
+      makeEvent([{ transcript: 'Brot ', isFinal: true }], 0),
+    )
+    expect(transcript.value).toBe('Brot ')
+    // Event 2: Browser liefert dasselbe Final nochmal + neues Final (resultIndex zeigt auf das neue)
+    mockInstance.onresult!(
+      makeEvent(
+        [
+          { transcript: 'Brot ', isFinal: true },
+          { transcript: 'Ei', isFinal: true },
+        ],
+        1,
+      ),
+    )
+    expect(transcript.value).toBe('Brot Ei')
+  })
+
+  it('start() setzt den akkumulierten Final-Transcript zurück', () => {
+    const { transcript, start } = useSpeechRecognition()
+    start()
+    mockInstance.onresult!(makeEvent([{ transcript: 'Milch', isFinal: true }], 0))
+    expect(transcript.value).toBe('Milch')
+    start()
+    mockInstance.onresult!(makeEvent([{ transcript: 'Brot', isFinal: true }], 0))
+    expect(transcript.value).toBe('Brot')
   })
 })

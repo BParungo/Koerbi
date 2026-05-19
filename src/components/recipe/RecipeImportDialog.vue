@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -94,6 +94,9 @@ function canImport(): boolean {
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>Rezept importieren</DialogTitle>
+        <DialogDescription>
+          Importiere ein Rezept von einer Website, aus Text, einem Foto oder PDF.
+        </DialogDescription>
       </DialogHeader>
 
       <Tabs v-model="activeTab" class="mt-2">

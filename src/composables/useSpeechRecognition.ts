@@ -18,6 +18,7 @@ interface ISpeechResultList {
 
 interface ISpeechEvent extends Event {
   results: ISpeechResultList
+  resultIndex: number
 }
 
 interface ISpeechRecognition extends EventTarget {
@@ -67,6 +68,7 @@ export function useSpeechRecognition() {
   recognition.continuous = true
 
   let silenceTimer: ReturnType<typeof setTimeout> | null = null
+  let finalTranscript = ''
 
   function clearSilenceTimer() {
     if (silenceTimer !== null) {
@@ -84,19 +86,24 @@ export function useSpeechRecognition() {
 
   recognition.onresult = (event: Event) => {
     const e = event as ISpeechEvent
-    let finalResult = ''
+    // Nur neue Results ab resultIndex verarbeiten — verhindert Doppelzählung,
+    // wenn der Browser dieselben Finals in mehreren Events wiederholt.
+    let newFinal = ''
     let interimResult = ''
-    for (let i = 0; i < e.results.length; i++) {
+    for (let i = e.resultIndex ?? 0; i < e.results.length; i++) {
       const result = e.results[i]
       const text = result?.[0]?.transcript ?? ''
       if (result?.isFinal) {
-        finalResult += text
+        newFinal += text
       } else {
         interimResult += text
       }
     }
-    transcript.value = finalResult + interimResult
-    if (finalResult) {
+    if (newFinal) {
+      finalTranscript += newFinal
+    }
+    transcript.value = finalTranscript + interimResult
+    if (newFinal) {
       startSilenceTimer()
     }
   }
@@ -113,6 +120,7 @@ export function useSpeechRecognition() {
 
   function start() {
     transcript.value = ''
+    finalTranscript = ''
     isListening.value = true
     recognition.start()
   }
