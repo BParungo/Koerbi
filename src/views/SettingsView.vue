@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useAuth } from '@/composables/useAuth'
 import { usePwaInstall } from '@/composables/usePwaInstall'
 import { buildInviteLink } from '@/utils/invite'
-import { getAvatarEmoji, getAvatarImageUrl, getAvatarFallback } from '@/utils/avatar'
+import { getAvatarImageUrl, getAvatarFallback } from '@/utils/avatar'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Copy, Check, LogOut } from 'lucide-vue-next'
+import MemberPreferencesCard from '@/components/shared/MemberPreferencesCard.vue'
 import type { FamilyMember } from '@/types'
 
 const auth = useAuthStore()
@@ -211,6 +212,8 @@ async function installPwa() {
         </Button>
       </CardContent>
     </Card>
+
+    <MemberPreferencesCard />
 
     <!-- Family Info -->
     <Card v-if="auth.family">

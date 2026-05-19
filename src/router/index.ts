@@ -58,6 +58,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresFamily: true }
     },
     {
+      path: '/scan',
+      name: 'scan',
+      component: () => import('@/views/ScanView.vue'),
+      meta: { requiresAuth: true, requiresFamily: true }
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),

@@ -33,3 +33,31 @@ export interface AuthState {
   family: Family | null
   loading: boolean
 }
+
+export type PreferenceType = 'allergy' | 'diet'
+
+export interface MemberPreference {
+  id: string
+  member_id: string
+  type: PreferenceType
+  value: string
+  created_at: string | null
+}
+
+export interface Product {
+  ean: string
+  name: string
+  brand?: string
+  imageUrl?: string
+  allergens: string[]
+  ingredientAnalysis: string[]
+  labels: string[]
+}
+
+export type CheckStatus = 'ok' | 'warning' | 'danger'
+
+export interface MemberCheckResult {
+  member: FamilyMember
+  status: CheckStatus
+  reasons: string[]
+}
