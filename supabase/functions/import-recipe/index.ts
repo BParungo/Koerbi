@@ -34,6 +34,38 @@ Das JSON muss exakt dieses Format haben:
 }
 Falls kein Rezept erkennbar ist, antworte mit: { "error": "Kein Rezept erkannt" }`
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function flattenInstructions(input: any): string[] {
+  if (!input) return []
+  if (typeof input === 'string') {
+    return input
+      .split(/\r?\n+|(?<=\.)\s+(?=[A-ZÄÖÜ])/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+  if (!Array.isArray(input)) return flattenInstructions([input])
+
+  const out: string[] = []
+  for (const entry of input) {
+    if (!entry) continue
+    if (typeof entry === 'string') {
+      const t = entry.trim()
+      if (t) out.push(t)
+      continue
+    }
+    const type = entry['@type']
+    if (type === 'HowToSection' || type?.includes?.('HowToSection')) {
+      out.push(...flattenInstructions(entry.itemListElement ?? entry.steps))
+      continue
+    }
+    const text = entry.text ?? entry.name ?? entry.description
+    if (typeof text === 'string' && text.trim()) {
+      out.push(text.trim())
+    }
+  }
+  return out
+}
+
 async function extractTextFromUrl(url: string): Promise<string> {
   const response = await fetch(url, {
     headers: {
@@ -62,21 +94,25 @@ async function extractTextFromUrl(url: string): Promise<string> {
       const content = block.replace(/<\/?script[^>]*>/gi, '').trim()
       try {
         const parsed = JSON.parse(content)
-        const items = Array.isArray(parsed) ? parsed : [parsed]
-        for (const item of items) {
-          if (item['@type'] === 'Recipe' || item['@type']?.includes?.('Recipe')) {
-            // Nur relevante Felder extrahieren
+        // @graph auflösen, falls vorhanden
+        const candidates = Array.isArray(parsed)
+          ? parsed
+          : parsed['@graph']
+            ? parsed['@graph']
+            : [parsed]
+        for (const item of candidates) {
+          const type = item['@type']
+          const isRecipe = Array.isArray(type)
+            ? type.includes('Recipe')
+            : type === 'Recipe' || type?.includes?.('Recipe')
+          if (isRecipe) {
             const slim = {
               name: item.name,
               recipeYield: item.recipeYield,
               totalTime: item.totalTime ?? item.cookTime,
               recipeCategory: item.recipeCategory,
               recipeIngredient: item.recipeIngredient,
-              recipeInstructions: Array.isArray(item.recipeInstructions)
-                ? item.recipeInstructions.map((s: { text?: string } | string) =>
-                    typeof s === 'string' ? s : s.text,
-                  )
-                : item.recipeInstructions,
+              recipeInstructions: flattenInstructions(item.recipeInstructions),
             }
             return `Schema.org Rezept:\n${JSON.stringify(slim)}`
           }
