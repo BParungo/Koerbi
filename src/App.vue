@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import BottomNav from '@/components/layout/BottomNav.vue'
+import Snackbar from '@/components/shared/Snackbar.vue'
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -27,4 +28,6 @@ const showBottomNav = computed(() => showAppShell.value && !!route.meta.requires
   </div>
 
   <RouterView v-else />
+
+  <Snackbar />
 </template>

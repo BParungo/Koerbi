@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useShoppingStore } from '@/stores/shopping.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useShopping } from '@/composables/useShopping'
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useRealtimeSubscription } from '@/composables/useRealtimeSubscription'
 import { supabase } from '@/lib/supabase'
 import { query } from '@/lib/supabase-query'
@@ -41,7 +42,25 @@ const {
   reorderItems,
 } = useShopping()
 
+const { show: showSnackbar } = useSnackbar()
+
 useRealtimeSubscription(computed(() => store.activeListId))
+
+async function handleToggleItem(id: string) {
+  // Zustand VOR dem Toggle merken, um die passende Meldung zu zeigen.
+  const item = store.activeList?.items.find((i) => i.id === id)
+  const wasDone = item?.done ?? false
+  const name = item?.name ?? 'Artikel'
+
+  await toggleItem(id)
+
+  // Nur beim Abhaken eine Undo-Snackbar zeigen (nicht beim Wieder-Aktivieren).
+  if (!wasDone) {
+    showSnackbar(`✓ ${name}`, {
+      action: { label: 'Rückgängig', onClick: () => toggleItem(id) },
+    })
+  }
+}
 
 const members = ref<FamilyMember[]>([])
 const recipeNames = ref<Record<string, string>>({})
@@ -194,7 +213,7 @@ async function handleDeleteList() {
           :members="members"
           :recipe-names="recipeNames"
           :list-id="store.activeListId!"
-          @toggle="toggleItem"
+          @toggle="handleToggleItem"
           @delete="deleteItem"
           @assign="handleAssignItem"
           @clear-done="clearDone"
