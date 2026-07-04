@@ -29,10 +29,17 @@ const SWIPE_DELETE_THRESHOLD = 72
 const SWIPE_START_THRESHOLD = 10
 
 function onPointerDown(event: PointerEvent) {
-  if ((event.target as HTMLElement).closest('.drag-handle')) return
+  // Interaktive Controls (Drag-Handle, Checkbox, Select, Buttons) nicht mit der
+  // Swipe-Geste kapern — sonst schluckt das Pointer-Capture ihre Klicks.
+  if (
+    (event.target as HTMLElement).closest(
+      '.drag-handle, button, select, input, a',
+    )
+  ) {
+    return
+  }
   startX.value = event.clientX
   startY.value = event.clientY
-  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
 }
 
 function onPointerMove(event: PointerEvent) {
@@ -50,6 +57,8 @@ function onPointerMove(event: PointerEvent) {
       return
     }
     swiping.value = true
+    // Pointer erst kapern, wenn ein horizontaler Swipe wirklich beginnt.
+    ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
   }
 
   swipeOffset.value = Math.max(-120, Math.min(0, deltaX))
@@ -57,7 +66,9 @@ function onPointerMove(event: PointerEvent) {
 
 function onPointerEnd(event: PointerEvent) {
   if (startX.value === null) return
-  ;(event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId)
+  if ((event.currentTarget as HTMLElement).hasPointerCapture(event.pointerId)) {
+    ;(event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId)
+  }
 
   const shouldDelete = swipeOffset.value <= -SWIPE_DELETE_THRESHOLD
   swipeOffset.value = 0
