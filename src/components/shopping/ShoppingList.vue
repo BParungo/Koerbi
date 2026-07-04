@@ -136,7 +136,7 @@ function onDragEnd(items: ShoppingItemType[]) {
 <style scoped>
 .drag-ghost {
   opacity: 0;
-  border-top: 2px solid hsl(var(--primary));
+  border-top: 2px solid var(--primary);
   margin-top: -2px;
 }
 </style>

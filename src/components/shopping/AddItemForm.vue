@@ -127,7 +127,7 @@ const normalizedItemNameSuggestions = computed(() => {
         type="button"
         size="icon"
         class="h-10 w-10"
-        :class="{ 'animate-pulse text-red-500': isListening }"
+        :class="{ 'animate-pulse text-destructive': isListening }"
         :aria-label="isListening ? 'Aufnahme stoppen' : 'Spracheingabe starten'"
         @click="toggleMic"
       >

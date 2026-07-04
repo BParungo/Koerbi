@@ -206,7 +206,7 @@ async function installPwa() {
           </div>
         </div>
         <p v-if="profileError" class="text-sm text-destructive">{{ profileError }}</p>
-        <p v-if="profileSuccess" class="text-sm text-emerald-600">{{ profileSuccess }}</p>
+        <p v-if="profileSuccess" class="text-sm text-success">{{ profileSuccess }}</p>
         <Button class="w-full" :disabled="savingProfile" @click="saveProfile">
           {{ savingProfile ? 'Speichere...' : 'Profil speichern' }}
         </Button>
@@ -284,7 +284,7 @@ async function installPwa() {
         <CardDescription>Schneller Zugriff direkt vom Homescreen</CardDescription>
       </CardHeader>
       <CardContent class="space-y-3">
-        <p v-if="isInstalled" class="text-sm text-emerald-600">App ist bereits installiert.</p>
+        <p v-if="isInstalled" class="text-sm text-success">App ist bereits installiert.</p>
 
         <Button v-else-if="canInstall" class="w-full" :disabled="installingPwa" @click="installPwa">
           {{ installingPwa ? 'Installiere...' : 'App installieren' }}

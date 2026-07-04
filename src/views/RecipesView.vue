@@ -23,8 +23,8 @@ onMounted(() => {
 <template>
   <div class="mx-auto max-w-lg space-y-4 p-4">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-<RouterLink :to="{ name: 'recipe-new' }">
+    <div class="flex items-center justify-end">
+      <RouterLink :to="{ name: 'recipe-new' }">
         <Button size="sm">
           <Plus class="mr-1 h-4 w-4" />
           Neu

@@ -63,8 +63,8 @@ async function rescan() {
 }
 
 function statusColor(status: 'ok' | 'warning' | 'danger'): string {
-  if (status === 'ok') return 'text-emerald-600'
-  if (status === 'warning') return 'text-amber-600'
+  if (status === 'ok') return 'text-success'
+  if (status === 'warning') return 'text-warning'
   return 'text-destructive'
 }
 </script>
