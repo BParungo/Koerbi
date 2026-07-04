@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { getCurrentInstance, onUnmounted, ref } from 'vue'
 
 interface ISpeechAlternative {
   transcript: string
@@ -86,24 +86,25 @@ export function useSpeechRecognition() {
 
   recognition.onresult = (event: Event) => {
     const e = event as ISpeechEvent
-    // Nur neue Results ab resultIndex verarbeiten — verhindert Doppelzählung,
-    // wenn der Browser dieselben Finals in mehreren Events wiederholt.
-    let newFinal = ''
+    // Den kompletten Final-Transcript in jedem Event aus ALLEN isFinal-Ergebnissen
+    // neu aufbauen, statt anzuhängen. Chrome liefert bei continuous=true dieselben
+    // Finals über mehrere Events erneut und setzt resultIndex nicht zuverlässig
+    // hoch — Anhängen würde Wörter vervielfachen.
+    let finalResult = ''
     let interimResult = ''
-    for (let i = e.resultIndex ?? 0; i < e.results.length; i++) {
+    for (let i = 0; i < e.results.length; i++) {
       const result = e.results[i]
       const text = result?.[0]?.transcript ?? ''
       if (result?.isFinal) {
-        newFinal += text
+        finalResult += text
       } else {
         interimResult += text
       }
     }
-    if (newFinal) {
-      finalTranscript += newFinal
-    }
+    const hasNewFinal = finalResult !== finalTranscript
+    finalTranscript = finalResult
     transcript.value = finalTranscript + interimResult
-    if (newFinal) {
+    if (hasNewFinal && finalResult) {
       startSilenceTimer()
     }
   }
@@ -119,6 +120,8 @@ export function useSpeechRecognition() {
   }
 
   function start() {
+    // recognition.start() während laufender Erkennung wirft InvalidStateError.
+    if (isListening.value) return
     transcript.value = ''
     finalTranscript = ''
     isListening.value = true
@@ -128,6 +131,15 @@ export function useSpeechRecognition() {
   function stop() {
     clearSilenceTimer()
     recognition.stop()
+  }
+
+  // Laufende Erkennung beenden, wenn die nutzende Komponente unmountet —
+  // sonst laufen Handler auf refs weiter, die niemand mehr beobachtet.
+  if (getCurrentInstance()) {
+    onUnmounted(() => {
+      clearSilenceTimer()
+      recognition.stop()
+    })
   }
 
   return { isSupported, isListening, transcript, start, stop }

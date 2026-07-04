@@ -147,17 +147,40 @@ describe('useSpeechRecognition', () => {
       makeEvent([{ transcript: 'Brot ', isFinal: true }], 0),
     )
     expect(transcript.value).toBe('Brot ')
-    // Event 2: Browser liefert dasselbe Final nochmal + neues Final (resultIndex zeigt auf das neue)
+    // Event 2: Chrome liefert das komplette results-Array erneut (dasselbe Final
+    // + neues Final) und setzt resultIndex NICHT hoch — der Transcript wird komplett
+    // neu aufgebaut, nicht angehängt.
     mockInstance.onresult!(
       makeEvent(
         [
           { transcript: 'Brot ', isFinal: true },
           { transcript: 'Ei', isFinal: true },
         ],
-        1,
+        0,
       ),
     )
     expect(transcript.value).toBe('Brot Ei')
+  })
+
+  it('startet den Silence-Timer nicht neu, wenn dasselbe Final wiederholt geliefert wird', () => {
+    vi.useFakeTimers()
+    const { start } = useSpeechRecognition()
+    start()
+    mockInstance.onresult!(makeEvent([{ transcript: 'Milch', isFinal: true }], 0))
+    vi.advanceTimersByTime(1500)
+    // Chrome wiederholt dasselbe Final ohne neuen Inhalt — Timer darf NICHT resetten.
+    mockInstance.onresult!(makeEvent([{ transcript: 'Milch', isFinal: true }], 0))
+    vi.advanceTimersByTime(500)
+    expect(mockInstance.stop).toHaveBeenCalled()
+    vi.useRealTimers()
+  })
+
+  it('start() während laufender Aufnahme ruft recognition.start nicht erneut auf', () => {
+    const { start } = useSpeechRecognition()
+    start()
+    expect(mockInstance.start).toHaveBeenCalledTimes(1)
+    start()
+    expect(mockInstance.start).toHaveBeenCalledTimes(1)
   })
 
   it('start() setzt den akkumulierten Final-Transcript zurück', () => {
